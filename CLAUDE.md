@@ -16,3 +16,7 @@
 - Las firmas son inmutables: el documento firmado se muestra desde `signature.document`, no se regenera.
 - Pruebas: `npm test` (unitarias) y `scripts/test-db.sh` (RLS contra un Postgres vacío).
 - Fechas y números que se renderizan en servidor y cliente: sin `Intl`/`toLocale*` con es-DO (desajuste de hidratación); usa `src/lib/format.ts` y `money()`.
+- Tokens de redes: solo en el servidor, cifrados con `encryptSecret` (`src/lib/crypto.ts`). Nunca los devuelvas a un componente ni a una acción (`listAccounts` ya los excluye).
+- Redes: Instagram/Facebook por Meta (`src/lib/integrations/meta.ts`); el resto por Ayrshare. Reglas por red en `src/lib/social/platforms.ts` y `validate.ts` (se usan en el editor y en el servidor).
+- Horas de publicación en hora de RD (UTC−4): usa `toRDInput`/`fromRDInput`/`ymdRD` de `src/lib/format.ts`.
+- Tareas programadas en `src/app/api/cron/*` con `cronAllowed()`; webhooks verifican la firma antes de leer el cuerpo.

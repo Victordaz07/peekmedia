@@ -221,6 +221,17 @@
     box-shadow: none;
     padding: 0;
   }
+  body.print-report * {
+    visibility: hidden;
+  }
+  body.print-report [data-report],
+  body.print-report [data-report] * {
+    visibility: visible;
+  }
+  body.print-report [data-report] {
+    position: absolute;
+    inset: 0 0 auto 0;
+  }
   [data-noprint] {
     display: none !important;
   }

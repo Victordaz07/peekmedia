@@ -108,6 +108,14 @@ export const accessStatus = {
   inactive: { label: "Desactivado", tone: "neutral" },
 } as const satisfies Record<string, StatusDef>;
 
+/** Estado de cada red dentro de una publicación */
+export const targetStatus = {
+  scheduled: { label: "En cola", tone: "outline" },
+  published: { label: "Publicado", tone: "dark" },
+  failed: { label: "Falló", tone: "danger" },
+  manual: { label: "Publicar a mano", tone: "warning" },
+} as const satisfies Record<string, StatusDef>;
+
 export const statusVocabularies = {
   post: postStatus,
   client: clientStatus,
@@ -117,6 +125,7 @@ export const statusVocabularies = {
   lead: leadStatus,
   request: requestStatus,
   access: accessStatus,
+  target: targetStatus,
 } as const;
 
 export type StatusKind = keyof typeof statusVocabularies;

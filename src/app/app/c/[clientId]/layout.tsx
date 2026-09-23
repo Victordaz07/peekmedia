@@ -4,6 +4,8 @@ import { Avatar, Skeleton } from "@/components/ui";
 import { requireClientAccess } from "@/lib/auth";
 import { getClient } from "@/lib/data/clients";
 import { listContracts } from "@/lib/data/contracts";
+import { listInbox } from "@/lib/data/insights";
+import { listPosts } from "@/lib/data/posts";
 import { SpaceTabs } from "./space-tabs";
 
 export default function ClientSpaceLayout({ children, params }: LayoutProps<"/app/c/[clientId]">) {
@@ -24,6 +26,13 @@ async function SpaceHeader({ params }: { params: Promise<{ clientId: string }> }
   if (!client) notFound();
   const latest = (await listContracts(clientId)).find((c) => viewer.kind === "team" || c.status !== "draft");
   const toSign = latest?.status === "sent";
+  const isTeam = viewer.kind === "team";
+  const [posts, inbox] = await Promise.all([listPosts(clientId, { hideDrafts: !isTeam }), isTeam ? listInbox(clientId) : Promise.resolve([])]);
+  const badges = {
+    plan: toSign ? 1 : 0,
+    approvals: posts.filter((p) => p.status === "pending").length,
+    inbox: inbox.filter((i) => !i.reply).length,
+  };
 
   return (
     <header className="flex flex-col gap-5">
@@ -36,7 +45,7 @@ async function SpaceHeader({ params }: { params: Promise<{ clientId: string }> }
           </p>
         </div>
       </div>
-      <SpaceTabs clientId={clientId} isTeam={viewer.kind === "team"} planBadge={toSign ? 1 : 0} />
+      <SpaceTabs clientId={clientId} isTeam={isTeam} badges={badges} />
     </header>
   );
 }

@@ -168,3 +168,17 @@ export async function deleteLoginUser(userId: string) {
   }
   await users.remove(userId);
 }
+
+/** Correos del equipo (para avisos). */
+export async function listTeamEmails(): Promise<string[]> {
+  if (isLocalMode()) {
+    const members = await localMemberships.all();
+    const all = await users.all();
+    return members.map((m) => all.find((u) => u.id === m.userId)?.email).filter((e): e is string => Boolean(e));
+  }
+  const admin = createAdminClient();
+  const { data: members } = await admin.from("memberships").select("user_id");
+  if (!members?.length) return [];
+  const { data } = await admin.from("profiles").select("email").in("id", members.map((m) => m.user_id));
+  return (data ?? []).map((p) => p.email).filter(Boolean);
+}

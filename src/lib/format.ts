@@ -51,3 +51,30 @@ export function addMonths(ymd: string, n: number) {
   const last = new Date(Date.UTC(ny, nm, 0)).getUTCDate();
   return `${ny}-${String(nm).padStart(2, "0")}-${String(Math.min(d, last)).padStart(2, "0")}`;
 }
+
+/** "5:54 p. m." en hora de RD. */
+export function timeRD(iso: string) {
+  return formatDateTimeRD(iso).split(", ")[1] ?? "";
+}
+
+/** ISO → valor de <input type="datetime-local"> en hora de RD. */
+export function toRDInput(iso: string) {
+  return new Date(new Date(iso).getTime() - 4 * 60 * 60 * 1000).toISOString().slice(0, 16);
+}
+
+/** Valor de <input type="datetime-local"> (hora de RD) → ISO con zona. */
+export function fromRDInput(value: string) {
+  return value ? new Date(`${value}:00-04:00`).toISOString() : null;
+}
+
+/** "YYYY-MM-DD" de un ISO en hora de RD. */
+export function ymdRD(iso: string) {
+  return toRDInput(iso).slice(0, 10);
+}
+
+/** 12,345 → "12.3k" (métricas). Sin Intl para no desajustar la hidratación. */
+export function compact(n: number) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (n >= 10_000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+  return Math.round(n).toLocaleString("en-US");
+}

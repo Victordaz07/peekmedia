@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getViewer } from "@/lib/auth";
 import { listClients } from "@/lib/data/clients";
 import { listContracts, listPlanRequests } from "@/lib/data/contracts";
+import { listPosts } from "@/lib/data/posts";
 import { Avatar } from "@/components/ui";
 import { AppNav, BottomNav, type NavItem } from "./app-nav";
 import { UserCard } from "./user-card";
@@ -12,11 +13,20 @@ export async function Sidebar() {
   if (!viewer) return null;
 
   if (viewer.kind === "client") {
-    const contracts = await listContracts(viewer.clientId);
-    const toSign = contracts[0]?.status === "sent" && viewer.role === "admin" ? 1 : 0;
+    const [contracts, posts] = await Promise.all([listContracts(viewer.clientId), listPosts(viewer.clientId, { hideDrafts: true })]);
+    const toSign = contracts.find((c) => c.status !== "draft")?.status === "sent" && viewer.role === "admin" ? 1 : 0;
+    const toApprove = viewer.role === "viewer" ? 0 : posts.filter((p) => p.status === "pending").length;
     const base = `/app/c/${viewer.clientId}`;
-    const items: NavItem[] = [
+    const main: NavItem[] = [
       { href: base, label: "Resumen", icon: "summary", exact: true },
+      { href: `${base}/calendario`, label: "Calendario", icon: "calendar" },
+      { href: `${base}/aprobaciones`, label: "Aprobar", icon: "approvals", badge: toApprove },
+      { href: `${base}/reportes`, label: "Reportes", icon: "reports" },
+    ];
+    const items: NavItem[] = [
+      ...main,
+      { href: `${base}/novedades`, label: "Novedades", icon: "inbox" },
+      { href: `${base}/conectar`, label: "Conectar cuentas", icon: "plug" },
       { href: `${base}/plan`, label: "Mi plan", icon: "contract", badge: toSign },
     ];
     return (
@@ -24,7 +34,7 @@ export async function Sidebar() {
         <div className="hidden lg:block">
           <AppNav items={items} />
         </div>
-        <BottomNav items={items} />
+        <BottomNav items={main} />
         <div className="lg:mt-auto">
           <UserCard viewer={viewer} />
         </div>
@@ -39,6 +49,8 @@ export async function Sidebar() {
     { href: "/app/clientes", label: "Clientes", icon: "users" },
     { href: "/app/prospectos", label: "Prospectos", icon: "inbox" },
     { href: "/app/sitio", label: "Sitio web", icon: "globe" },
+    { href: "/app/conexiones", label: "Conexiones y API", icon: "plug" },
+    { href: "/app/ajustes", label: "Ajustes", icon: "settings" },
   ];
   const spaces = clients.filter((c) => c.status !== "ended");
   return (

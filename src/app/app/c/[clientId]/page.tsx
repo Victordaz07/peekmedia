@@ -1,13 +1,19 @@
-import { BarChart3, FileSignature } from "lucide-react";
+import { CheckCircle2, FileSignature, PlugZap } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
-import { ButtonLink, Card, CardTitle, EmptyState, LoadingState, NetworkChip, StatusBadge } from "@/components/ui";
+import { FollowersChart, KpiRow, PlatformCards, sourceLabel, TopPosts } from "@/components/posts/insights";
+import { ButtonLink, Card, CardTitle, EmptyState, LoadingState, NetworkChip, NetworkDot, StatusBadge } from "@/components/ui";
 import { isClientAdmin, requireClientAccess } from "@/lib/auth";
 import { money } from "@/lib/content/helpers";
 import { nextPayment } from "@/lib/contracts/document";
 import { getClient } from "@/lib/data/clients";
 import { listContracts, listPlanRequests } from "@/lib/data/contracts";
-import { shortDate } from "@/lib/format";
+import { listMetrics } from "@/lib/data/insights";
+import { listPosts } from "@/lib/data/posts";
+import { formatDateTimeRD, shortDate } from "@/lib/format";
+import { daysAgo, kpis, monthUsage, platformRows, topPosts } from "@/lib/social/analytics";
+import { postTypeLabel } from "@/lib/social/platforms";
 
 export const metadata: Metadata = { title: "Resumen" };
 
@@ -30,6 +36,16 @@ async function Resumen({ params, searchParams }: Pick<PageProps<"/app/c/[clientI
   const pending = (await listPlanRequests(clientId)).filter((r) => r.status === "pending");
   const planHref = `/app/c/${clientId}/plan${vista === "cliente" ? "?vista=cliente" : ""}`;
   const canSign = isClientAdmin(viewer);
+  const base = `/app/c/${clientId}`;
+  const q = vista === "cliente" ? "?vista=cliente" : "";
+  const [rows, posts] = await Promise.all([listMetrics(clientId, daysAgo(120)), listPosts(clientId, { hideDrafts: asClient })]);
+  const k = rows.length ? kpis(rows, posts) : null;
+  const plats = platformRows(rows, posts);
+  const usage = monthUsage(posts);
+  const now = new Date().toISOString();
+  const upcoming = posts.filter((p) => p.scheduledAt && p.scheduledAt >= now && ["pending", "approved", "scheduled"].includes(p.status)).slice(0, 5);
+  const toApprove = posts.filter((p) => p.status === "pending").length;
+  const canReview = viewer.kind === "client" && (viewer.role === "admin" || viewer.role === "approver");
 
   return (
     <div className="flex flex-col gap-5">
@@ -58,67 +74,128 @@ async function Resumen({ params, searchParams }: Pick<PageProps<"/app/c/[clientI
         </p>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        {current ? (
-          <Card variant="ink" className="gap-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="flex flex-col gap-1">
-                <span className="text-eyebrow font-bold tracking-[0.12em] uppercase">Plan contratado</span>
-                <span className="font-display text-h1 leading-none font-bold tracking-[-0.03em]">{current.planName}</span>
-              </div>
-              <StatusBadge kind="contract" status={current.status} />
+      {asClient && toApprove > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-md bg-coral-tint p-5">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 aria-hidden className="mt-1 size-5 shrink-0" />
+            <div>
+              <p className="font-display text-h3 font-bold">
+                {toApprove} {toApprove === 1 ? "publicación espera" : "publicaciones esperan"} tu aprobación
+              </p>
+              <p className="text-label">{canReview || viewer.kind === "team" ? "Revísalas y apruébalas o pide cambios." : "Las aprueba un Administrador o Aprobador de tu negocio."}</p>
             </div>
-            <dl className="flex flex-wrap gap-x-8 gap-y-3">
-              <Fact label="Inversión mensual" value={money(current.price)} />
-              {current.status === "signed" && <Fact label="Próximo pago" value={shortDate(nextPayment(current), false)} />}
-              <Fact label="Publicaciones al mes" value={String(current.deliverables.posts)} />
-            </dl>
-            <ButtonLink href={planHref} variant="primary" size="sm" className="self-start">
-              Ver plan y contrato
-            </ButtonLink>
-          </Card>
-        ) : (
-          <EmptyState
-            icon={FileSignature}
-            title={asClient ? "Tu contrato aparece aquí" : "Este cliente no tiene contrato"}
-            description={asClient ? "Cuando tu agencia te lo envíe, lo revisas y lo firmas desde aquí." : "Prepara uno desde Plan y contrato."}
-            className="bg-surface"
-          />
-        )}
+          </div>
+          <ButtonLink href={`${base}/aprobaciones${q}`}>Revisar</ButtonLink>
+        </div>
+      )}
 
+      {k ? (
+        <KpiRow k={k} source={sourceLabel(k)} />
+      ) : (
         <Card className="gap-4">
-          <CardTitle>Redes</CardTitle>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex max-w-xl flex-col gap-1">
+              <CardTitle>{asClient ? "Conecta tus redes para ver tus números" : "Este cliente todavía no tiene métricas"}</CardTitle>
+              <p className="text-label text-muted">
+                Cuando {asClient ? "conectes" : "conecte"} las cuentas, el sistema trae cada mañana seguidores, alcance, interacción y las mejores publicaciones.
+              </p>
+            </div>
+            <ButtonLink href={`${base}/conectar${q}`} iconLeft={<PlugZap className="size-4" />}>
+              Conectar cuentas
+            </ButtonLink>
+          </div>
           <div className="flex flex-wrap gap-2">
             {client.platforms.map((p) => (
               <NetworkChip key={p} network={p} />
             ))}
           </div>
-          <p className="text-label text-muted">
-            Pronto vas a poder conectarlas desde aquí para ver seguidores, alcance y tus mejores publicaciones.
-          </p>
-        </Card>
-      </div>
-
-      {pending.length > 0 && (
-        <Card className="gap-3">
-          <CardTitle>Solicitudes pendientes</CardTitle>
-          <ul className="flex flex-col gap-2 text-label">
-            {pending.map((r) => (
-              <li key={r.id} className="flex items-center justify-between gap-3">
-                <span>{r.type === "plan" ? `Cambio de plan (${r.target})` : `Agregar: ${r.target}`}</span>
-                <StatusBadge kind="request" status={r.status} />
-              </li>
-            ))}
-          </ul>
         </Card>
       )}
 
-      <EmptyState
-        icon={BarChart3}
-        title="Las métricas llegan cuando conectemos tus redes"
-        description="Aquí verás seguidores, alcance, interacción y tus mejores publicaciones del mes, con la hora de la última actualización."
-        className="bg-surface"
-      />
+      <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
+        <div className="flex min-w-0 flex-col gap-5">
+          <FollowersChart rows={rows} />
+          <TopPosts posts={topPosts(posts, 4)} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-5">
+          <Card className="gap-3">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Próximas publicaciones</CardTitle>
+              <Link href={`${base}/calendario${q}`} className="text-label font-semibold underline decoration-cyan decoration-2 underline-offset-4">
+                Calendario
+              </Link>
+            </div>
+            {upcoming.length ? (
+              <ul className="flex flex-col divide-y divide-hairline">
+                {upcoming.map((p) => (
+                  <li key={p.id}>
+                    <Link
+                      href={`${base}/${p.status === "pending" ? "aprobaciones" : "calendario"}?post=${p.id}${q && `&${q.slice(1)}`}`}
+                      className="flex items-center gap-3 py-2.5 hover:bg-hairline/40"
+                    >
+                      <span className="flex shrink-0 gap-0.5">
+                        {p.platforms.slice(0, 3).map((n) => (
+                          <NetworkDot key={n} network={n} />
+                        ))}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-label font-semibold">{p.caption || postTypeLabel[p.type]}</span>
+                        <span className="text-caption text-muted">{formatDateTimeRD(p.scheduledAt!)}</span>
+                      </span>
+                      <StatusBadge kind="post" status={p.status} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-label text-muted">No hay nada programado todavía.</p>
+            )}
+          </Card>
+
+          {current ? (
+            <Card variant="ink" className="gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-eyebrow font-bold tracking-[0.12em] uppercase">Plan contratado</span>
+                  <span className="font-display text-h2 leading-none font-bold tracking-[-0.03em]">{current.planName}</span>
+                </div>
+                <StatusBadge kind="contract" status={current.status} />
+              </div>
+              <dl className="flex flex-wrap gap-x-8 gap-y-3">
+                <Fact label="Inversión mensual" value={money(current.price)} />
+                {current.status === "signed" && <Fact label="Próximo pago" value={shortDate(nextPayment(current), false)} />}
+                <Fact label="Publicado este mes" value={`${usage.posts + usage.reels} / ${current.deliverables.posts + current.deliverables.reels}`} />
+              </dl>
+              <ButtonLink href={planHref} variant="primary" size="sm" className="self-start">
+                Ver plan y contrato
+              </ButtonLink>
+            </Card>
+          ) : (
+            <EmptyState
+              icon={FileSignature}
+              title={asClient ? "Tu contrato aparece aquí" : "Este cliente no tiene contrato"}
+              description={asClient ? "Cuando tu agencia te lo envíe, lo revisas y lo firmas desde aquí." : "Prepara uno desde Plan y contrato."}
+              className="bg-surface"
+            />
+          )}
+
+          {pending.length > 0 && (
+            <Card className="gap-3">
+              <CardTitle>Solicitudes pendientes</CardTitle>
+              <ul className="flex flex-col gap-2 text-label">
+                {pending.map((r) => (
+                  <li key={r.id} className="flex items-center justify-between gap-3">
+                    <span>{r.type === "plan" ? `Cambio de plan (${r.target})` : `Agregar: ${r.target}`}</span>
+                    <StatusBadge kind="request" status={r.status} />
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {plats.length > 0 && <PlatformCards rows={plats} />}
     </div>
   );
 }

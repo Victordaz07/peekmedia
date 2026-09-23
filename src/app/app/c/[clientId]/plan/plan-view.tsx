@@ -2,9 +2,9 @@
 
 import { Pencil, Printer } from "lucide-react";
 import { useState } from "react";
-import { Button, Card, CardTitle, EmptyState, StatusBadge } from "@/components/ui";
+import { Button, Card, CardTitle, EmptyState, StatusBadge, UsageBar } from "@/components/ui";
 import { money } from "@/lib/content/helpers";
-import { deliverableKeys, deliverableLabel, type ContractPlan } from "@/lib/contracts/catalog";
+import { deliverableKeys, deliverableLabel, type ContractPlan, type DeliverableKey } from "@/lib/contracts/catalog";
 import { contractEnd, nextPayment, type Agency, type ContractSection, type ScheduleRow } from "@/lib/contracts/document";
 import type { Contract, ContractTerms, PlanRequest } from "@/lib/contracts/schema";
 import { longDate, shortDate, todayRD } from "@/lib/format";
@@ -31,6 +31,8 @@ export function PlanView(props: {
   requests: PlanRequest[];
   schedule: ScheduleRow[];
   editorInitial: ContractTerms | null;
+  /** Uso del mes en curso (publicado + programado) y redes conectadas. */
+  usage: Partial<Record<DeliverableKey, number>>;
 }) {
   const { mode, current, catalog, client } = props;
   const isTeam = mode === "team";
@@ -60,7 +62,7 @@ export function PlanView(props: {
         </p>
       )}
 
-      {current ? <Hero contract={current} /> : <NoContract onCreate={() => startEdit()} />}
+      {current ? <Hero contract={current} usage={props.usage} /> : <NoContract onCreate={() => startEdit()} />}
 
       {isTeam && editing && (
         <ContractEditor
@@ -120,7 +122,7 @@ export function PlanView(props: {
   );
 }
 
-function Hero({ contract: c }: { contract: Contract }) {
+function Hero({ contract: c, usage }: { contract: Contract; usage: Partial<Record<DeliverableKey, number>> }) {
   const today = todayRD();
   const end = contractEnd(c);
   const renewal = c.status === "signed" && end < today;
@@ -157,15 +159,24 @@ function Hero({ contract: c }: { contract: Contract }) {
       <Card className="min-w-0 flex-[1_1_300px] gap-3">
         <div className="flex flex-col gap-0.5">
           <CardTitle>Qué incluye cada mes</CardTitle>
-          <p className="text-caption text-muted">El uso del mes se mostrará aquí cuando publiquemos desde Peek.</p>
+          <p className="text-caption text-muted">Uso de este mes: lo publicado y lo programado.</p>
+        </div>
+        <div className="flex flex-col gap-3">
+          {deliverableKeys
+            .filter((k) => usage[k] !== undefined && c.deliverables[k] > 0)
+            .map((k) => (
+              <UsageBar key={k} label={deliverableLabel[k]} used={usage[k]!} total={c.deliverables[k]} />
+            ))}
         </div>
         <dl className="flex flex-col divide-y divide-hairline">
-          {deliverableKeys.map((k) => (
-            <div key={k} className="flex items-baseline justify-between gap-3 py-2 text-label">
-              <dt>{deliverableLabel[k]}</dt>
-              <dd className="font-display text-[18px] font-bold tabular-nums">{c.deliverables[k]}</dd>
-            </div>
-          ))}
+          {deliverableKeys
+            .filter((k) => usage[k] === undefined || c.deliverables[k] === 0)
+            .map((k) => (
+              <div key={k} className="flex items-baseline justify-between gap-3 py-2 text-label">
+                <dt>{deliverableLabel[k]}</dt>
+                <dd className="font-display text-[18px] font-bold tabular-nums">{c.deliverables[k]}</dd>
+              </div>
+            ))}
         </dl>
       </Card>
     </div>

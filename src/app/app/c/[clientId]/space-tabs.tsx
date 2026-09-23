@@ -6,17 +6,38 @@ import { Segmented } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 /** Pestañas del espacio. El equipo además puede previsualizar lo que ve el cliente (?vista=cliente). */
-export function SpaceTabs({ clientId, isTeam, planBadge }: { clientId: string; isTeam: boolean; planBadge: number }) {
+export function SpaceTabs({
+  clientId,
+  isTeam,
+  badges,
+}: {
+  clientId: string;
+  isTeam: boolean;
+  badges: { plan: number; approvals: number; inbox: number };
+}) {
   const pathname = usePathname();
   const params = useSearchParams();
   const router = useRouter();
   const preview = params.get("vista") === "cliente";
   const base = `/app/c/${clientId}`;
   const q = preview ? "?vista=cliente" : "";
+  const asTeam = isTeam && !preview;
+  const tab = (path: string, label: string, badge?: number) => ({
+    href: `${base}${path}`,
+    label,
+    badge,
+    active: path ? pathname.startsWith(`${base}${path}`) : pathname === base,
+  });
   const tabs = [
-    { href: base, label: "Resumen", active: pathname === base },
-    { href: `${base}/plan`, label: isTeam && !preview ? "Plan y contrato" : "Mi plan y contrato", active: pathname.startsWith(`${base}/plan`), badge: planBadge },
-    ...(isTeam ? [{ href: `/app/clientes/${clientId}`, label: "Ficha y accesos", active: false }] : []),
+    tab("", "Resumen"),
+    tab("/calendario", "Calendario"),
+    ...(asTeam ? [tab("/crear", "Crear"), tab("/bandeja", "Bandeja", badges.inbox)] : []),
+    tab("/aprobaciones", "Aprobaciones", badges.approvals),
+    tab("/reportes", "Reportes"),
+    tab("/novedades", "Novedades"),
+    tab("/conectar", asTeam ? "Conectar" : "Conectar cuentas"),
+    tab("/plan", asTeam ? "Plan y contrato" : "Mi plan", badges.plan),
+    ...(asTeam ? [{ href: `/app/clientes/${clientId}`, label: "Ficha y accesos", active: false, badge: undefined }] : []),
   ];
 
   return (

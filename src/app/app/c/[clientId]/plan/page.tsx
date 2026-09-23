@@ -10,6 +10,9 @@ import { defaultTerms, termsOf } from "@/lib/contracts/terms";
 import { getClient } from "@/lib/data/clients";
 import { getSiteContent } from "@/lib/data/content";
 import { listContracts, listPayments, listPlanRequests } from "@/lib/data/contracts";
+import { listPosts } from "@/lib/data/posts";
+import { listAccounts } from "@/lib/data/social";
+import { monthUsage } from "@/lib/social/analytics";
 import { PlanView, type PlanMode } from "./plan-view";
 
 export const metadata: Metadata = { title: "Plan y contrato" };
@@ -30,13 +33,16 @@ async function Plan({ params, searchParams }: Pick<PageProps<"/app/c/[clientId]/
 
   const client = await getClient(clientId);
   if (!client) notFound();
-  const [all, requests, payments, content, agency] = await Promise.all([
+  const [all, requests, payments, content, agency, posts, accounts] = await Promise.all([
     listContracts(clientId),
     listPlanRequests(clientId),
     listPayments(clientId),
     getSiteContent(),
     getAgency(),
+    listPosts(clientId, { hideDrafts: true }),
+    listAccounts(clientId),
   ]);
+  const usage = { ...monthUsage(posts), networks: accounts.filter((a) => a.status === "connected").length };
 
   // El cliente nunca ve borradores (RLS ya los oculta en Supabase; aquí también, por si acaso).
   const versions = mode === "team" ? all : all.filter((c) => c.status !== "draft");
@@ -65,6 +71,7 @@ async function Plan({ params, searchParams }: Pick<PageProps<"/app/c/[clientId]/
       catalog={catalog}
       requests={requests}
       schedule={signed ? paymentSchedule(signed, payments) : []}
+      usage={usage}
       editorInitial={current ? termsOf(current) : fallbackPlan ? defaultTerms(fallbackPlan) : null}
     />
   );

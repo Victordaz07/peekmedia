@@ -254,3 +254,20 @@ export async function deleteTask(id: string) {
   const { error } = await (await createSessionClient()).from("tasks").delete().eq("id", id);
   if (error) fail("No se pudo borrar la tarea", error);
 }
+
+/** Personas activas del cliente con alguno de estos roles (para avisos). Usa la clave secreta: la llaman los jobs. */
+export async function clientContacts(clientId: string, roles: ClientRole[]): Promise<{ name: string; email: string }[]> {
+  if (isLocalMode()) {
+    return (await clientUsersT.all()).filter((u) => u.clientId === clientId && u.active && roles.includes(u.role)).map(({ name, email }) => ({ name, email }));
+  }
+  const { data } = await createAdminClient().from("client_users").select("name, email, role, active").eq("client_id", clientId).eq("active", true);
+  return (data ?? []).filter((u) => roles.includes(u.role)).map(({ name, email }) => ({ name, email }));
+}
+
+/** Todos los clientes activos (jobs). */
+export async function listClientsAdmin(): Promise<Client[]> {
+  if (isLocalMode()) return clientsT.all();
+  const { data, error } = await createAdminClient().from("clients").select("*");
+  if (error) fail("No se pudieron leer los clientes", error);
+  return (data as ClientRow[]).map(clientFromRow);
+}

@@ -1,4 +1,4 @@
-import { ArrowRight, FileSignature, Inbox, Sparkles, Users } from "lucide-react";
+import { ArrowRight, FileSignature, Inbox, MessageSquareWarning, Sparkles, TriangleAlert, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -7,6 +7,7 @@ import { requireTeam } from "@/lib/auth";
 import { listClients } from "@/lib/data/clients";
 import { listLatestContracts, listPlanRequests } from "@/lib/data/contracts";
 import { listLeads } from "@/lib/data/leads";
+import { listPosts } from "@/lib/data/posts";
 import { formatDateTimeRD } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Inicio" };
@@ -28,8 +29,27 @@ async function Inicio() {
   const drafts = contracts.filter((c) => c.status === "draft");
   const newLeads = leads.filter((l) => l.status === "new");
   const active = clients.filter((c) => c.status === "active").length;
+  const posts = (await Promise.all(clients.filter((c) => c.status !== "ended").map((c) => listPosts(c.id)))).flat();
+  const failed = posts.filter((p) => p.status === "failed");
+  const changes = posts.filter((p) => p.status === "changes");
 
   const items = [
+    ...failed.map((p) => ({
+      key: p.id,
+      icon: TriangleAlert,
+      client: byId.get(p.clientId),
+      text: `tiene una publicación que falló${p.scheduledAt ? ` (${formatDateTimeRD(p.scheduledAt)})` : ""}`,
+      href: `/app/c/${p.clientId}/calendario?post=${p.id}`,
+      badge: <StatusBadge kind="post" status="failed" />,
+    })),
+    ...changes.map((p) => ({
+      key: p.id,
+      icon: MessageSquareWarning,
+      client: byId.get(p.clientId),
+      text: `pidió cambios: “${(p.feedback ?? "").slice(0, 60)}”`,
+      href: `/app/c/${p.clientId}/crear?editar=${p.id}`,
+      badge: <StatusBadge kind="post" status="changes" />,
+    })),
     ...pendingRequests.map((r) => ({
       key: r.id,
       icon: Sparkles,
@@ -75,7 +95,7 @@ async function Inicio() {
           <CardTitle>Pendientes</CardTitle>
           {items.length === 0 ? (
             <p className="rounded-item border-[1.5px] border-dashed border-ink/25 p-6 text-center text-label text-muted">
-              Nada pendiente en contratos ni solicitudes. ¡Bien ahí!
+              Nada pendiente en publicaciones, contratos ni solicitudes. ¡Bien ahí!
             </p>
           ) : (
             <ul className="flex flex-col divide-y divide-hairline">

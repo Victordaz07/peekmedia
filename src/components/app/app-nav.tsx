@@ -1,11 +1,23 @@
 "use client";
 
-import { FileText, Globe, Home, Inbox, LayoutDashboard, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, CalendarDays, CheckCircle2, FileText, Globe, Home, Inbox, LayoutDashboard, PlugZap, Settings, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 
-const icons = { home: Home, users: Users, inbox: Inbox, globe: Globe, summary: LayoutDashboard, contract: FileText } satisfies Record<string, LucideIcon>;
+const icons = {
+  home: Home,
+  users: Users,
+  inbox: Inbox,
+  globe: Globe,
+  summary: LayoutDashboard,
+  contract: FileText,
+  calendar: CalendarDays,
+  approvals: CheckCircle2,
+  reports: BarChart3,
+  plug: PlugZap,
+  settings: Settings,
+} satisfies Record<string, LucideIcon>;
 
 export type NavItem = { href: string; label: string; icon: keyof typeof icons; badge?: number; exact?: boolean };
 
