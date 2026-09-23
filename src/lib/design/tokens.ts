@@ -95,6 +95,19 @@ export const leadStatus = {
   lost: { label: "Perdido", tone: "neutral" },
 } as const satisfies Record<string, StatusDef>;
 
+/** Solicitudes de cambio de plan o de servicios adicionales */
+export const requestStatus = {
+  pending: { label: "Pendiente", tone: "warning" },
+  approved: { label: "Aprobada", tone: "info" },
+  rejected: { label: "Rechazada", tone: "neutral" },
+} as const satisfies Record<string, StatusDef>;
+
+/** Accesos de personas del cliente */
+export const accessStatus = {
+  active: { label: "Activo", tone: "info" },
+  inactive: { label: "Desactivado", tone: "neutral" },
+} as const satisfies Record<string, StatusDef>;
+
 export const statusVocabularies = {
   post: postStatus,
   client: clientStatus,
@@ -102,6 +115,8 @@ export const statusVocabularies = {
   connection: connectionStatus,
   invoice: invoiceStatus,
   lead: leadStatus,
+  request: requestStatus,
+  access: accessStatus,
 } as const;
 
 export type StatusKind = keyof typeof statusVocabularies;

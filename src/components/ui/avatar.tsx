@@ -20,6 +20,7 @@ export function Avatar({
   color = "ocean",
   size = "md",
   ring,
+  labelled = false,
   className,
 }: {
   name: string;
@@ -28,10 +29,13 @@ export function Avatar({
   size?: keyof typeof sizes;
   /** Anillo degradado cian → coral, estilo historia de Instagram. */
   ring?: boolean;
+  /** Anuncia el nombre a lectores de pantalla. Por defecto es decorativo: casi siempre va junto al nombre escrito. */
+  labelled?: boolean;
   className?: string;
 }) {
   const inner = (
     <span
+      aria-hidden={labelled ? undefined : true}
       className={cn(
         "relative grid shrink-0 place-items-center overflow-hidden rounded-full font-display font-bold",
         sizes[size],
@@ -40,11 +44,11 @@ export function Avatar({
       )}
     >
       {src ? (
-        <Image src={src} alt={name} width={pixels[size]} height={pixels[size]} className="size-full object-cover" />
+        <Image src={src} alt={labelled ? name : ""} width={pixels[size]} height={pixels[size]} className="size-full object-cover" />
       ) : (
         <>
           <span aria-hidden>{initials(name)}</span>
-          <span className="sr-only">{name}</span>
+          {labelled && <span className="sr-only">{name}</span>}
         </>
       )}
     </span>

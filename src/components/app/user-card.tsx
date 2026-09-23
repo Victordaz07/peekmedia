@@ -1,33 +1,24 @@
 import { LogOut } from "lucide-react";
 import { signOut } from "@/app/login/actions";
 import { Avatar, Button, Skeleton } from "@/components/ui";
-import { getTeamUser } from "@/lib/auth";
+import type { Viewer } from "@/lib/auth";
+import { clientRoleLabel } from "@/lib/clients/schema";
 
-const roleLabel = { owner: "Administrador", cm: "Community manager" } as const;
+const teamRoleLabel = { owner: "Administrador · Peek", cm: "Community manager" } as const;
 
-export async function UserCard({ compact }: { compact?: boolean }) {
-  const user = await getTeamUser();
-  if (!user) return null;
-  if (compact) {
-    return (
-      <form action={signOut}>
-        <Button type="submit" variant="ghost" size="sm" iconLeft={<LogOut className="size-4" />}>
-          Salir
-        </Button>
-      </form>
-    );
-  }
+export function UserCard({ viewer }: { viewer: Viewer }) {
+  const role = viewer.kind === "team" ? teamRoleLabel[viewer.role] : clientRoleLabel[viewer.role];
   return (
-    <div className="flex flex-col gap-3 rounded-md bg-surface p-4 ring-1 ring-hairline">
-      <div className="flex items-center gap-3">
-        <Avatar name={user.name} size="sm" color="cyan" />
+    <div className="flex items-center gap-3 rounded-md bg-surface p-3 ring-1 ring-hairline lg:flex-col lg:items-stretch lg:p-4">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <Avatar name={viewer.name || viewer.email} size="sm" color={viewer.kind === "team" ? "cyan" : "ocean"} />
         <div className="min-w-0 leading-tight">
-          <p className="truncate text-label font-bold">{user.name}</p>
-          <p className="truncate text-caption text-muted">{roleLabel[user.role]}</p>
+          <p className="truncate text-label font-bold">{viewer.name || viewer.email}</p>
+          <p className="truncate text-caption text-muted">{role}</p>
         </div>
       </div>
       <form action={signOut}>
-        <Button type="submit" variant="secondary" size="sm" className="w-full" iconLeft={<LogOut className="size-4" />}>
+        <Button type="submit" variant="secondary" size="sm" className="lg:w-full" iconLeft={<LogOut className="size-4" />}>
           Salir
         </Button>
       </form>
@@ -35,6 +26,12 @@ export async function UserCard({ compact }: { compact?: boolean }) {
   );
 }
 
-export function UserCardSkeleton() {
-  return <Skeleton className="h-[108px] w-full rounded-md" />;
+export function SidebarSkeleton() {
+  return (
+    <div className="flex flex-col gap-2">
+      {[0, 1, 2].map((i) => (
+        <Skeleton key={i} className="h-10 w-full rounded-item" />
+      ))}
+    </div>
+  );
 }

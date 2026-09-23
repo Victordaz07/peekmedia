@@ -2,14 +2,17 @@
 
 import { Info } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useActionState, useState } from "react";
 import { Button, ButtonLink, Field, Input, Logo, Segmented } from "@/components/ui";
 import { signIn, type SignInState } from "./actions";
 
 type Mode = "supabase" | "local" | "unconfigured";
+type Kind = "team" | "client";
 
-export function LoginCard({ mode }: { mode: Mode }) {
-  const [tab, setTab] = useState<"team" | "client">("team");
+export function LoginCard({ mode, localTeam }: { mode: Mode; localTeam: { email: string; password: string } | null }) {
+  const params = useSearchParams();
+  const [kind, setKind] = useState<Kind>(params.get("cliente") ? "client" : "team");
   return (
     <div className="flex w-full max-w-[440px] flex-col gap-6 rounded-lg bg-surface p-[clamp(24px,6vw,40px)] shadow-elevated">
       <Link href="/" aria-label="Volver al sitio" className="self-start rounded-sm">
@@ -21,67 +24,64 @@ export function LoginCard({ mode }: { mode: Mode }) {
       </div>
       <Segmented
         label="Tipo de acceso"
-        value={tab}
-        onChange={setTab}
+        value={kind}
+        onChange={setKind}
         className="self-start"
         options={[
           { value: "team", label: "Equipo Peek" },
           { value: "client", label: "Soy cliente" },
         ]}
       />
-      {tab === "team" ? <TeamLogin mode={mode} /> : <ClientSoon />}
+      {mode === "unconfigured" ? (
+        <Notice>Falta configurar Supabase en el servidor (NEXT_PUBLIC_SUPABASE_URL y la clave pública).</Notice>
+      ) : (
+        <LoginForm key={kind} kind={kind} localTeam={kind === "team" ? localTeam : null} />
+      )}
     </div>
   );
 }
 
-function TeamLogin({ mode }: { mode: Mode }) {
+function LoginForm({ kind, localTeam }: { kind: Kind; localTeam: { email: string; password: string } | null }) {
   const [state, action, pending] = useActionState<SignInState, FormData>(signIn, {});
-
-  if (mode === "local") {
-    return (
-      <div role="tabpanel" className="flex flex-col gap-4">
-        <Notice>
-          Modo local: Supabase no está configurado, así que no hay login. Los cambios se guardan en <code>.data/</code> en esta computadora.
-        </Notice>
-        <ButtonLink href="/app" size="lg">
-          Entrar al panel
-        </ButtonLink>
-      </div>
-    );
-  }
-  if (mode === "unconfigured") {
-    return (
-      <div role="tabpanel">
-        <Notice>Falta configurar Supabase en el servidor (NEXT_PUBLIC_SUPABASE_URL y la clave pública).</Notice>
-      </div>
-    );
-  }
+  const client = kind === "client";
   return (
     <form role="tabpanel" action={action} className="flex flex-col gap-4" noValidate>
-      <Field label="Email">
-        <Input name="email" type="email" autoComplete="email" required defaultValue={state.email} placeholder="tu@peekmedia.do" />
+      <input type="hidden" name="kind" value={kind} />
+      {localTeam && (
+        <Notice>
+          Modo local (sin Supabase). Entra con <strong>{localTeam.email}</strong> y la contraseña <strong>{localTeam.password}</strong>.
+        </Notice>
+      )}
+      <Field label="Correo">
+        <Input
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          defaultValue={state.email ?? localTeam?.email}
+          placeholder={client ? "tu@negocio.com" : "tu@peekmedia.do"}
+        />
       </Field>
-      <Field label="Contraseña" error={state.error}>
-        <Input name="password" type="password" autoComplete="current-password" required minLength={6} />
+      <Field
+        label={client ? "Código de acceso" : "Contraseña"}
+        hint={client ? "Te lo envió tu community manager." : undefined}
+        error={state.error}
+      >
+        {client ? (
+          <Input name="secret" autoComplete="one-time-code" autoCapitalize="characters" spellCheck={false} placeholder="XXXX-XXXX" required className="font-mono tracking-[0.12em] uppercase" />
+        ) : (
+          <Input name="secret" type="password" autoComplete="current-password" required minLength={6} defaultValue={localTeam?.password} />
+        )}
       </Field>
       <Button type="submit" size="lg" loading={pending} className="mt-2">
         Entrar
       </Button>
+      {client && (
+        <ButtonLink href="/#contacto" variant="ghost" size="sm" className="self-center">
+          ¿No tienes código? Escríbenos
+        </ButtonLink>
+      )}
     </form>
-  );
-}
-
-function ClientSoon() {
-  return (
-    <div role="tabpanel" className="flex flex-col gap-3">
-      <Notice>
-        Muy pronto vas a poder entrar con el email y el código que te envíe tu community manager. Mientras tanto, escríbenos por
-        WhatsApp.
-      </Notice>
-      <ButtonLink href="/#contacto" variant="outline">
-        Volver al sitio
-      </ButtonLink>
-    </div>
   );
 }
 

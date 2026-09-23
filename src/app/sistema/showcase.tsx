@@ -534,7 +534,7 @@ function SelectionSection() {
       </Sub>
       <Sub title="Avatares">
         <div className="flex flex-wrap items-center gap-4">
-          <Avatar name="Café Aroma" color="coral" size="lg" />
+          <Avatar name="Café Aroma" color="coral" size="lg" labelled />
           <Avatar name="Clínica Sonrisa" color="cyan" size="lg" />
           <Avatar name="Torre Mar" color="ink" size="lg" />
           <Avatar name="Dagoberto Nuñez" color="ocean" size="lg" />

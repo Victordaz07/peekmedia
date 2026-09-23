@@ -1,48 +1,73 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
+import type { ClientRole } from "@/lib/clients/schema";
+import { clientUserByUserId } from "@/lib/data/clients";
+import { currentSessionUser, teamRoleOf } from "@/lib/data/identity";
 import { isLocalMode, localModeAllowed } from "@/lib/env";
-import { createSessionClient } from "@/lib/supabase/server";
 
 export type TeamRole = "owner" | "cm";
 
-export type TeamUser = {
+export type TeamUser = { kind: "team"; id: string; name: string; email: string; role: TeamRole };
+export type ClientViewer = {
+  kind: "client";
   id: string;
   name: string;
   email: string;
-  role: TeamRole;
-  /** true en modo local (sin Supabase): no hay login real. */
-  local: boolean;
+  role: ClientRole;
+  clientId: string;
+  clientUserId: string;
 };
+export type Viewer = TeamUser | ClientViewer;
 
-const LOCAL_USER: TeamUser = { id: "local", name: "Equipo Peek", email: "modo local", role: "owner", local: true };
-
-/** Usuario del equipo con sesión activa, o null. Lee cookies: úsalo dentro de un <Suspense>. */
-export async function getTeamUser(): Promise<TeamUser | null> {
-  // Siempre por petición: sin esto, en modo local la página se prerenderizaría al compilar.
+/** Quién está usando el panel: alguien del equipo, una persona de un cliente, o nadie. Lee cookies. */
+export async function getViewer(): Promise<Viewer | null> {
   await connection();
-  if (isLocalMode()) return localModeAllowed() ? LOCAL_USER : null;
+  if (isLocalMode() && !localModeAllowed()) return null;
+  const user = await currentSessionUser();
+  if (!user) return null;
 
-  const supabase = await createSessionClient();
-  const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims;
-  if (!claims?.sub) return null;
+  const teamRole = await teamRoleOf(user.id);
+  if (teamRole) return { kind: "team", id: user.id, name: user.name || user.email.split("@")[0], email: user.email, role: teamRole };
 
-  const { data: membership } = await supabase
-    .from("memberships")
-    .select("role")
-    .eq("user_id", claims.sub)
-    .maybeSingle();
-  if (!membership) return null;
-
-  const meta = (claims.user_metadata ?? {}) as { name?: string };
-  const email = typeof claims.email === "string" ? claims.email : "";
-  return { id: claims.sub, name: meta.name || email.split("@")[0] || "Equipo", email, role: membership.role as TeamRole, local: false };
+  const access = await clientUserByUserId(user.id);
+  if (!access || !access.active) return null;
+  return {
+    kind: "client",
+    id: user.id,
+    name: access.name,
+    email: access.email,
+    role: access.role,
+    clientId: access.clientId,
+    clientUserId: access.id,
+  };
 }
 
-/** Para páginas y acciones del equipo: sin sesión válida, manda al login. */
+/** Inicio de cada persona: el equipo va a su panel; un cliente, a su espacio. */
+export function homeFor(viewer: Viewer) {
+  return viewer.kind === "team" ? "/app" : `/app/c/${viewer.clientId}`;
+}
+
+/** Páginas y acciones del equipo. Un cliente que llegue aquí vuelve a su espacio. */
 export async function requireTeam(): Promise<TeamUser> {
-  const user = await getTeamUser();
-  if (!user) redirect("/login");
-  return user;
+  const viewer = await getViewer();
+  if (!viewer) redirect("/login");
+  if (viewer.kind !== "team") redirect(homeFor(viewer));
+  return viewer;
+}
+
+/**
+ * Espacio de un cliente: el equipo entra a todos; una persona del cliente, solo al suyo.
+ * El servidor lo impone aquí y la base de datos otra vez con RLS.
+ */
+export async function requireClientAccess(clientId: string): Promise<Viewer> {
+  const viewer = await getViewer();
+  if (!viewer) redirect("/login");
+  if (viewer.kind === "client" && viewer.clientId !== clientId) redirect(homeFor(viewer));
+  return viewer;
+}
+
+/** ¿Puede firmar contratos y pedir cambios de plan? Solo los Administradores del cliente. */
+export function isClientAdmin(viewer: Viewer): viewer is ClientViewer {
+  return viewer.kind === "client" && viewer.role === "admin";
 }

@@ -213,6 +213,13 @@ export function LeadsBoard({ initial }: { initial: Lead[] }) {
               <h3 className="text-eyebrow font-bold tracking-[0.12em] text-muted uppercase">Lo que nos contó</h3>
               <p className="text-body whitespace-pre-line">{open.notes || <span className="text-muted">Sin notas.</span>}</p>
             </section>
+            <ButtonLink
+              href={`/app/clientes/nuevo?${new URLSearchParams({ negocio: open.business || open.name, contacto: open.name })}`}
+              variant="dark"
+              className="self-start"
+            >
+              Convertir en cliente
+            </ButtonLink>
           </>
         )}
       </Drawer>

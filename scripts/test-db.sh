@@ -7,4 +7,4 @@ cd "$(dirname "$0")/.."
 run() { psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$1"; }
 run supabase/tests/stub-auth.sql
 for f in supabase/migrations/*.sql; do run "$f"; done
-run supabase/tests/rls.sql
+for f in supabase/tests/rls*.sql; do run "$f"; done

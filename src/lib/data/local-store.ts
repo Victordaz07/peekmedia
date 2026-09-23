@@ -20,3 +20,32 @@ export async function writeJson(name: string, value: unknown) {
   await writeFile(tmp, JSON.stringify(value, null, 2));
   await rename(tmp, file);
 }
+
+/** Tabla local mínima sobre un archivo JSON (solo modo local). */
+export function localTable<T extends { id: string }>(name: string) {
+  return {
+    async all(): Promise<T[]> {
+      return (await readJson<T[]>(name)) ?? [];
+    },
+    async find(pred: (row: T) => boolean): Promise<T | undefined> {
+      return (await this.all()).find(pred);
+    },
+    async insert(row: T): Promise<T> {
+      const rows = await this.all();
+      rows.push(row);
+      await writeJson(name, rows);
+      return row;
+    },
+    async update(id: string, patch: Partial<T>): Promise<T | undefined> {
+      const rows = await this.all();
+      const row = rows.find((r) => r.id === id);
+      if (!row) return undefined;
+      Object.assign(row, patch);
+      await writeJson(name, rows);
+      return row;
+    },
+    async remove(id: string): Promise<void> {
+      await writeJson(name, (await this.all()).filter((r) => r.id !== id));
+    },
+  };
+}

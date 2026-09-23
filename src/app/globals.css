@@ -50,7 +50,6 @@
   /* Escala de texto */
   --text-eyebrow: 12px;
   --text-eyebrow--line-height: 16px;
-  --text-eyebrow--letter-spacing: 0.12em;
   --text-caption: 13px;
   --text-caption--line-height: 18px;
   --text-label: 14px;
@@ -204,5 +203,25 @@
   .reveal-hidden {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Imprimir o guardar PDF: solo el documento del contrato (ver plan-view.tsx) */
+@media print {
+  body.print-contract * {
+    visibility: hidden;
+  }
+  body.print-contract [data-contract],
+  body.print-contract [data-contract] * {
+    visibility: visible;
+  }
+  body.print-contract [data-contract] {
+    position: absolute;
+    inset: 0 0 auto 0;
+    box-shadow: none;
+    padding: 0;
+  }
+  [data-noprint] {
+    display: none !important;
   }
 }
