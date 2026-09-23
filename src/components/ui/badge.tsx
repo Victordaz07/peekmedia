@@ -60,7 +60,7 @@ export function TrendPill({ value, suffix = "%", className }: { value: number; s
       <Icon aria-hidden className="size-3.5" strokeWidth={2.5} />
       <span className="sr-only">{up ? "Sube" : "Baja"}</span>
       {up ? "+" : "−"}
-      {Math.abs(value).toLocaleString("es-DO")}
+      {Math.abs(value).toLocaleString("en-US")}
       {suffix}
     </span>
   );

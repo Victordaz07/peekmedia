@@ -37,6 +37,7 @@ export const metadata: Metadata = {
     locale: "es_DO",
     siteName: "Peek Media",
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

@@ -86,12 +86,22 @@ export const invoiceStatus = {
   upcoming: { label: "Próximo", tone: "outline" },
 } as const satisfies Record<string, StatusDef>;
 
+/** Prospectos que llegan del cotizador del sitio */
+export const leadStatus = {
+  new: { label: "Nuevo", tone: "alert" },
+  contacted: { label: "Contactado", tone: "warning" },
+  proposal: { label: "Propuesta enviada", tone: "info" },
+  won: { label: "Ganado", tone: "accent" },
+  lost: { label: "Perdido", tone: "neutral" },
+} as const satisfies Record<string, StatusDef>;
+
 export const statusVocabularies = {
   post: postStatus,
   client: clientStatus,
   contract: contractStatus,
   connection: connectionStatus,
   invoice: invoiceStatus,
+  lead: leadStatus,
 } as const;
 
 export type StatusKind = keyof typeof statusVocabularies;

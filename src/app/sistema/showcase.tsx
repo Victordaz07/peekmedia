@@ -44,6 +44,8 @@ import {
   useToast,
 } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { money } from "@/lib/content/helpers";
+import { formatDateTimeRD } from "@/lib/format";
 import {
   clientStatus,
   connectionStatus,
@@ -512,7 +514,7 @@ function SelectionSection() {
               onCheckedChange={(on) => setPicked(on ? [...picked, q.id] : picked.filter((p) => p !== q.id))}
               title={q.name}
               description={q.desc}
-              meta={`Desde RD$ ${q.price.toLocaleString("es-DO")} / mes`}
+              meta={`Desde ${money(q.price)} / mes`}
             />
           ))}
           <SelectableCard checked={false} onCheckedChange={() => {}} title="Página web" description="Próximamente." disabled />
@@ -549,7 +551,7 @@ function SelectionSection() {
 /* ───────────── Datos ───────────── */
 
 const followers = Array.from({ length: 90 }, (_, i) => ({
-  label: new Date(2026, 5, 25 + i).toLocaleDateString("es-DO", { day: "numeric", month: "short" }),
+  label: formatDateTimeRD(new Date(Date.UTC(2026, 5, 25 + i, 12)).toISOString()).split(",")[0],
   value: Math.round(4200 + i * 14 + Math.sin(i / 5) * 60 + Math.cos(i / 2.3) * 25),
 }));
 

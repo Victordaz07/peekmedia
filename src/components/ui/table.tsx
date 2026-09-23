@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 /** Tabla con scroll horizontal en móvil. Nunca va sobre textura. */
 export function Table({ className, ...props }: ComponentProps<"table">) {
   return (
-    <div className="w-full overflow-x-auto rounded-md bg-surface">
+    <div className="relative w-full overflow-x-auto rounded-md bg-surface">
       <table className={cn("w-full min-w-[560px] border-collapse text-left text-label", className)} {...props} />
     </div>
   );
