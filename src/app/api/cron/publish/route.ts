@@ -4,7 +4,7 @@ import { publishPost } from "@/lib/social/engine";
 
 export const maxDuration = 300;
 
-/** Publica lo programado cuya hora ya llegó. Vercel Cron lo llama cada 10 minutos. */
+/** Publica lo programado cuya hora ya llegó. Cada 10 minutos: Vercel Cron en Pro o un cron externo con el mismo secreto en Hobby. */
 export async function GET(request: Request) {
   if (!cronAllowed(request)) return new Response("No autorizado", { status: 401 });
   const due = await duePosts();

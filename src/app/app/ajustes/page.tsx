@@ -34,12 +34,13 @@ async function Settings() {
     { label: "ID de negocio de Meta", ok: Boolean(cfg.metaBusinessId), env: "META_BUSINESS_ID", help: "Para el acceso como socio cuando no se usa OAuth." },
     { label: "Ayrshare (otras redes)", ok: cfg.ayrshare, env: "AYRSHARE_API_KEY", help: "TikTok, YouTube, Google, LinkedIn, Pinterest, X y Threads." },
     { label: "Enlace de Ayrshare para el cliente", ok: cfg.ayrshareLinking, env: "AYRSHARE_PRIVATE_KEY, AYRSHARE_DOMAIN", help: "Permite que el cliente conecte solo, sin entrar al panel de Ayrshare." },
-    { label: "Tareas programadas", ok: cfg.cron, env: "CRON_SECRET", help: "Publicar cada 10 min, sincronizar a las 5:00 a. m. y reporte mensual." },
+    { label: "Tareas programadas", ok: cfg.cron, env: "CRON_SECRET", help: "Publicar lo programado (cada 10 min con un cron externo en Hobby), sincronizar a las 5:00 a. m. y reporte mensual." },
     { label: "Correos", ok: cfg.mail, env: "RESEND_API_KEY, MAIL_FROM", help: "Avisos de aprobación, cambios, fallos y reporte mensual." },
   ];
   const urls = [
     { label: "URL de redirección OAuth (Meta)", value: oauthRedirect("meta") },
     { label: "URL del webhook (Meta)", value: `${siteUrl}/api/webhooks/meta` },
+    { label: "Publicar lo programado (cron externo, cada 10 min)", value: `${siteUrl}/api/cron/publish` },
     { label: "Política de privacidad", value: `${siteUrl}/privacidad` },
     { label: "Eliminación de datos", value: `${siteUrl}/eliminacion-de-datos` },
   ];
@@ -63,7 +64,7 @@ async function Settings() {
       </Card>
       <Card className="gap-3">
         <CardTitle>URLs para la configuración</CardTitle>
-        <p className="text-caption text-muted">Cópialas en el panel de Meta for Developers.</p>
+        <p className="text-caption text-muted">Cópialas en Meta for Developers y en el servicio de cron.</p>
         <dl className="flex flex-col gap-3">
           {urls.map((u) => (
             <div key={u.label} className="flex flex-col gap-1">

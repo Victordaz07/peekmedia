@@ -91,7 +91,7 @@ El contenido empieza con los textos del handoff. La primera vez que guardes en `
 
 - **Los tokens nunca llegan al navegador.** Se guardan cifrados con AES-256-GCM (`TOKEN_ENCRYPTION_KEY`) y la tabla `social_accounts` tiene permisos por columna: ni el equipo desde el navegador puede leer esas columnas; solo el servidor con la clave secreta.
 - **OAuth** con `state` firmado (HMAC) y un nonce en cookie. Si la persona administra varias páginas, elige cuál antes de conectar.
-- **Publicación:** "Programar" deja la pieza en cola y `/api/cron/publish` (cada 10 min) publica lo vencido. "Enviar a aprobación" avisa al cliente por correo; al aprobar, pasa a programada. Cada red guarda su estado (publicado, falló con el motivo o "publicar a mano") y el equipo puede reintentar.
+- **Publicación:** "Programar" deja la pieza en cola y `/api/cron/publish` (cada 10 min, ver "Desplegar en Vercel") publica lo vencido. "Enviar a aprobación" avisa al cliente por correo; al aprobar, pasa a programada. Cada red guarda su estado (publicado, falló con el motivo o "publicar a mano") y el equipo puede reintentar.
 - **Sincronización diaria** (`/api/cron/sync`, 5:00 a. m. en RD): seguidores, alcance, interacciones, audiencia, métricas por publicación, comentarios y reseñas.
 - **Bandeja:** los webhooks de Meta traen comentarios y DMs al instante (firma `X-Hub-Signature-256` obligatoria). Los DMs solo se responden dentro de las 24 h que permite Meta.
 - **Correos** (Resend): pedido de aprobación, aprobado o con cambios, publicación fallida y reporte mensual (`/api/cron/report`, día 1).
@@ -130,7 +130,7 @@ El contenido empieza con los textos del handoff. La primera vez que guardes en `
 
    No pongas `PEEK_ALLOW_LOCAL_MODE` en producción.
 4. **Deploy.** Después, en *Settings → Domains*, agrega tu dominio y actualiza `NEXT_PUBLIC_SITE_URL` (y vuelve a desplegar: es una variable pública y se fija al compilar).
-5. **Tareas programadas:** `vercel.json` publica cada 10 minutos. El plan **Hobby** de Vercel solo permite tareas diarias; para la publicación programada necesitas **Pro**. Alternativa en Hobby: cambia `/api/cron/publish` a una vez al día en `vercel.json` y llama la ruta cada 10 minutos desde un servicio externo (p. ej. cron-job.org) con el encabezado `Authorization: Bearer TU_CRON_SECRET`.
+5. **Tareas programadas:** `vercel.json` está listo para el plan **Hobby**, que solo permite tareas diarias: publica una vez al día (6:00 a. m. en RD) como respaldo. Para que lo programado salga a su hora, crea una tarea gratis en [cron-job.org](https://cron-job.org) que llame cada 10 minutos a `https://TU-DOMINIO/api/cron/publish` con el encabezado `Authorization: Bearer TU_CRON_SECRET`. Si pasas a **Pro**, cambia en `vercel.json` el horario de `/api/cron/publish` a `*/10 * * * *` y ya no necesitas el servicio externo.
 6. Entra a `/app/ajustes` para ver qué integraciones quedaron activas.
 
 ## Estructura
