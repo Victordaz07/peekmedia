@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Peek Media — Dashboard de clientes</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="assets/peek-media-simbolo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Caveat:wght@600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#BEBEBE url('assets/textura-gris.svg') 0 0/420px 420px repeat;color:#0B1F33;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#0B1F33;text-decoration:none}
+a:hover{color:#FF5A5F}
+input,textarea,select,button{font-family:inherit;color:#0B1F33}
+@media print{aside,[data-noprint]{display:none!important}body{background:#FFFFFF}body.pm-print-contract *{visibility:hidden}body.pm-print-contract [data-contract],body.pm-print-contract [data-contract] *{visibility:visible}body.pm-print-contract [data-contract]{position:absolute;left:0;top:0;width:100%;box-shadow:none!important}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#BEBEBE url('assets/textura-gris.svg') 0 0/420px 420px repeat;display:flex;flex-wrap:wrap">
+
+<sc-if value="{{ needLogin }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1 1 100%;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="width:100%;max-width:440px;background:#FFFFFF;border-radius:36px;padding:36px 32px;display:flex;flex-direction:column;gap:18px;box-shadow:0 30px 60px -30px rgba(11,31,51,0.35)">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div style="width:131px;height:48px;overflow:hidden"><img src="assets/peek-media-logo-horizontal.png" alt="Peek Media" style="height:64px;width:auto;display:block"></div><span style="font-size:11px;font-weight:700;letter-spacing:0.1em;background:#FFE1E2;padding:4px 8px;border-radius:10px">DEMO</span></div>
+    <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:34px;letter-spacing:-0.03em;line-height:1">Entra a tu panel</div>
+    <div style="display:flex;background:#BEBEBE;border-radius:999px;padding:4px">
+      <sc-for list="{{ login.tabs }}" as="lt" hint-placeholder-count="2">
+        <button type="button" onClick="{{ lt.onClick }}" style="flex:1;border:0;cursor:pointer;background:{{ lt.bg }};color:{{ lt.fg }};font-size:14px;font-weight:600;padding:10px;border-radius:999px">{{ lt.label }}</button>
+      </sc-for>
+    </div>
+    <label style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600">Correo<input type="email" value="{{ login.email }}" onChange="{{ login.onEmail }}" placeholder="tu@correo.com" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6"></label>
+    <label style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600">{{ login.secretLabel }}<input type="password" value="{{ login.secret }}" onChange="{{ login.onSecret }}" onKeyDown="{{ login.onKey }}" placeholder="{{ login.secretPh }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6"></label>
+    <sc-if value="{{ login.err }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;background:#FFE1E2;padding:10px 14px;border-radius:10px">{{ login.err }}</div></sc-if>
+    <button type="button" onClick="{{ login.submit }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:15px;font-weight:600;padding:15px;border-radius:999px;cursor:pointer">Entrar</button>
+    <div style="border-top:1px solid rgba(11,31,51,0.1);padding-top:16px;display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">Accesos de demostración</div>
+      <sc-for list="{{ login.demos }}" as="ld" hint-placeholder-count="3">
+        <button type="button" onClick="{{ ld.onClick }}" style="display:flex;justify-content:space-between;gap:10px;text-align:left;background:#BEBEBE;border:0;border-radius:12px;padding:10px 12px;cursor:pointer;font-size:13px"><span style="font-weight:700">{{ ld.label }}</span><span>{{ ld.cred }}</span></button>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+<sc-if value="{{ authed }}" hint-placeholder-val="{{ true }}">
+<aside style="flex:1 1 240px;max-width:100%;background:#FFFFFF url('assets/textura-blanco.svg') 0 0/420px 420px repeat;padding:20px;display:flex;flex-direction:column;gap:24px;border-right:1px solid rgba(11,31,51,0.08)">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+    <div style="width:131px;height:48px;overflow:hidden"><img src="assets/peek-media-logo-horizontal.png" alt="Peek Media" style="height:64px;width:auto;display:block"></div>
+    <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;background:#FFE1E2;padding:4px 8px;border-radius:10px">DEMO</span>
+  </div>
+
+  <sc-if value="{{ isTeam }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">Cliente</div>
+    <sc-for list="{{ clientTabs }}" as="ct" hint-placeholder-count="3">
+      <button type="button" onClick="{{ ct.onClick }}" style="display:flex;align-items:center;gap:12px;text-align:left;border:1.5px solid {{ ct.border }};background:{{ ct.bg }};border-radius:14px;padding:10px;cursor:pointer">
+        <span style="width:36px;height:36px;border-radius:999px;background:{{ ct.avatarBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:14px;flex-shrink:0">{{ ct.initials }}</span>
+        <span style="display:flex;flex-direction:column;min-width:0;line-height:1.25"><span style="font-weight:700;font-size:14px">{{ ct.name }}</span><span style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ct.industry }}</span></span>
+      </button>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="8">
+      <button type="button" onClick="{{ n.onClick }}" style="text-align:left;border:0;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }};font-size:15px;font-weight:600;padding:11px 14px;border-radius:10px;display:flex;justify-content:space-between;align-items:center">{{ n.label }}<sc-if value="{{ n.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="background:#FF5A5F;color:#0B1F33;font-size:12px;font-weight:700;min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:flex;align-items:center;justify-content:center">{{ n.badge }}</span></sc-if></button>
+    </sc-for>
+  </div>
+
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;background:#FFFFFF;border:1.5px solid rgba(11,31,51,0.08);border-radius:14px;padding:10px 12px"><span style="display:flex;flex-direction:column;line-height:1.3;min-width:0"><span style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sessionName }}</span><span style="font-size:12px">{{ sessionRole }}</span></span><button type="button" onClick="{{ logout }}" style="border:0;background:#BEBEBE;font-size:12px;font-weight:600;padding:7px 10px;border-radius:999px;cursor:pointer;white-space:nowrap">Salir</button></div>
+    <sc-if value="{{ isTeam }}" hint-placeholder-val="{{ true }}">
+    <div style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">Ver como</div>
+    <div style="display:flex;background:#BEBEBE;border-radius:999px;padding:4px">
+      <sc-for list="{{ roles }}" as="r" hint-placeholder-count="2">
+        <button type="button" onClick="{{ r.onClick }}" style="flex:1;border:0;cursor:pointer;background:{{ r.bg }};color:{{ r.fg }};font-size:14px;font-weight:600;padding:9px;border-radius:999px">{{ r.label }}</button>
+      </sc-for>
+    </div>
+    </sc-if>
+    <div style="font-size:12px;line-height:1.45">Datos de demostración generados para este mockup. Se reemplazan por los reales al conectar las APIs.</div>
+  </div>
+</aside>
+
+<main style="flex:999 1 680px;min-width:0;padding:28px clamp(16px,3vw,40px) 88px;display:flex;flex-direction:column;gap:24px">
+
+  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:20px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase">{{ viewLabel }}</div>
+      <h1 style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:clamp(36px,4.4vw,60px);line-height:0.95;letter-spacing:-0.04em;margin:0">{{ client.name }}</h1>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+        <span style="font-size:14px;margin-right:6px">{{ client.industry }}</span>
+        <sc-for list="{{ client.plats }}" as="cp" hint-placeholder-count="4">
+          <span style="display:flex;align-items:center;gap:6px;background:#FFFFFF;font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px"><span style="width:8px;height:8px;border-radius:999px;background:{{ cp.color }};display:block"></span>{{ cp.name }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <div data-noprint="" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:14px;background:#FFFFFF;padding:11px 16px;border-radius:999px">Últimos 30 días</span>
+      <sc-if value="{{ isCM }}" hint-placeholder-val="{{ true }}">
+        <button type="button" onClick="{{ goCreate }}" style="background:#FF5A5F;color:#0B1F33;border:0;font-size:15px;font-weight:600;padding:13px 22px;border-radius:999px;cursor:pointer">+ Nueva publicación</button>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <sc-if value="{{ v.resumen }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ ct.banner }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#FFE1E2;border:2px solid #FF5A5F;border-radius:20px;padding:18px 22px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px;font-size:20px">{{ ct.bannerTitle }}</span><span style="font-size:14px">{{ ct.bannerText }}</span></div>
+        <button type="button" onClick="{{ ct.goPlan }}" style="background:#FF5A5F;color:#0B1F33;border:0;font-size:15px;font-weight:700;padding:12px 20px;border-radius:999px;cursor:pointer">Ver mi contrato →</button>
+      </div>
+    </sc-if>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px">
+      <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+        <div style="background:#FFFFFF;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .25s ease" style-hover="transform:translateY(-4px)">
+          <div style="font-size:13px;font-weight:600">{{ k.label }}</div>
+          <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:36px;letter-spacing:-0.03em;line-height:1">{{ k.value }}</div>
+          <span style="align-self:flex-start;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{ k.deltaBg }}">{{ k.delta }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Crecimiento de seguidores</div>
+          <div style="font-size:14px">{{ chart.caption }}</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ chartTabs }}" as="chT" hint-placeholder-count="4">
+            <button type="button" onClick="{{ chT.onClick }}" style="border:0;cursor:pointer;background:{{ chT.bg }};color:{{ chT.fg }};font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px">{{ chT.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:stretch">
+        <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:12px;text-align:right;padding:4px 0 22px;min-width:48px">
+          <span>{{ chart.max }}</span><span>{{ chart.mid }}</span><span>{{ chart.min }}</span>
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+          <svg viewBox="0 0 600 200" preserveAspectRatio="none" style="width:100%;height:220px;display:block">
+            <line x1="0" y1="20" x2="600" y2="20" stroke="rgba(11,31,51,0.08)" stroke-width="1"></line>
+            <line x1="0" y1="105" x2="600" y2="105" stroke="rgba(11,31,51,0.08)" stroke-width="1"></line>
+            <line x1="0" y1="190" x2="600" y2="190" stroke="rgba(11,31,51,0.08)" stroke-width="1"></line>
+            <path d="{{ chart.area }}" fill="rgba(33,196,214,0.16)"></path>
+            <path d="{{ chart.line }}" fill="none" stroke="#21C4D6" stroke-width="3" vector-effect="non-scaling-stroke" stroke-linejoin="round"></path>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <sc-for list="{{ chart.labels }}" as="cl" hint-placeholder-count="5"><span>{{ cl }}</span></sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px">
+        <sc-for list="{{ platCards }}" as="pc" hint-placeholder-count="3">
+          <div style="border:1.5px solid rgba(11,31,51,0.08);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><span style="width:8px;height:8px;border-radius:999px;background:{{ pc.color }};display:block"></span>{{ pc.name }}</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px">
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:24px">{{ pc.value }}</span><span style="font-size:12px;font-weight:600">{{ pc.delta }}</span></div>
+              <svg viewBox="0 0 120 36" preserveAspectRatio="none" style="width:90px;height:36px"><path d="{{ pc.spark }}" fill="none" stroke="{{ pc.color }}" stroke-width="2" vector-effect="non-scaling-stroke"></path></svg>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+      <div style="flex:3 1 460px;min-width:0;background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px">
+        <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Mejores publicaciones del mes</div>
+        <sc-for list="{{ topPosts }}" as="tp" hint-placeholder-count="4">
+          <button type="button" onClick="{{ tp.onClick }}" style="display:flex;gap:14px;align-items:center;text-align:left;background:none;border:0;border-bottom:1px solid rgba(11,31,51,0.08);padding:0 0 14px;cursor:pointer">
+            <span style="width:56px;height:56px;border-radius:12px;background:{{ tp.toneBg }};color:{{ tp.toneFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">{{ tp.type }}</span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tp.caption }}</span><span style="font-size:13px">{{ tp.dateLabel }} · {{ tp.platLabel }}</span></span>
+            <span style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0"><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:20px">{{ tp.reach }}</span><span style="font-size:12px">alcance</span></span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="flex:2 1 300px;min-width:0;display:flex;flex-direction:column;gap:20px">
+        <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:14px">
+          <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Próximas publicaciones</div>
+          <sc-for list="{{ upcoming }}" as="up" hint-placeholder-count="4">
+            <button type="button" onClick="{{ up.onClick }}" style="display:flex;gap:12px;align-items:center;text-align:left;background:none;border:0;padding:0;cursor:pointer">
+              <span style="width:48px;flex-shrink:0;text-align:center;background:#BEBEBE;border-radius:12px;padding:6px 0;line-height:1.1"><span style="display:block;font-size:11px;font-weight:600">{{ up.dow }}</span><span style="display:block;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:20px">{{ up.day }}</span></span>
+              <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ up.caption }}</span><span style="display:flex;gap:6px;align-items:center;font-size:12px"><span style="padding:2px 8px;border-radius:999px;background:{{ up.stBg }};color:{{ up.stFg }};font-weight:600">{{ up.stLabel }}</span>{{ up.time }}</span></span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="background:#0B1F33;color:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Novedades</div>
+          <sc-for list="{{ newsShort }}" as="ns" hint-placeholder-count="3">
+            <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45"><span style="width:8px;height:8px;border-radius:999px;background:{{ ns.dot }};display:block;margin-top:6px;flex-shrink:0"></span>{{ ns.text }}</div>
+          </sc-for>
+          <button type="button" onClick="{{ goNews }}" style="align-self:flex-start;background:none;border:0;color:#21C4D6;font-size:14px;font-weight:600;padding:0;cursor:pointer">Ver todas →</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CALENDARIO -->
+  <sc-if value="{{ v.calendario }}" hint-placeholder-val="{{ false }}">
+    <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button type="button" onClick="{{ cal.prev }}" style="width:38px;height:38px;border-radius:999px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;cursor:pointer;font-size:16px">‹</button>
+          <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:26px;min-width:200px;text-align:center">{{ cal.title }}</div>
+          <button type="button" onClick="{{ cal.next }}" style="width:38px;height:38px;border-radius:999px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;cursor:pointer;font-size:16px">›</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ legend }}" as="lgd" hint-placeholder-count="5">
+            <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:{{ lgd.bg }};color:{{ lgd.fg }}">{{ lgd.label }}</span>
+          </sc-for>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <div style="min-width:720px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px">
+          <sc-for list="{{ cal.dows }}" as="dw" hint-placeholder-count="7"><div style="font-size:12px;font-weight:700;padding:4px 8px">{{ dw }}</div></sc-for>
+          <sc-for list="{{ cal.days }}" as="dy" hint-placeholder-count="35">
+            <div style="min-height:118px;border-radius:12px;background:{{ dy.bg }};border:1.5px solid {{ dy.border }};padding:8px;display:flex;flex-direction:column;gap:4px;opacity:{{ dy.op }}">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700">{{ dy.num }}</span><sc-if value="{{ dy.canAdd }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ dy.onAdd }}" style="border:0;background:none;cursor:pointer;font-size:16px;line-height:1;padding:0 2px">+</button></sc-if></div>
+              <sc-for list="{{ dy.posts }}" as="dp" hint-placeholder-count="0">
+                <button type="button" onClick="{{ dp.onClick }}" style="text-align:left;border:0;cursor:pointer;background:{{ dp.stBg }};color:{{ dp.stFg }};border-radius:8px;padding:5px 7px;font-size:11px;line-height:1.3;display:flex;flex-direction:column;gap:2px">
+                  <span style="font-weight:700">{{ dp.time }} · {{ dp.platShort }}</span>
+                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ dp.caption }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CREAR -->
+  <sc-if value="{{ v.crear }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+      <div style="flex:3 1 460px;min-width:0;background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13px;font-weight:600">Publicar en</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ comp.plats }}" as="cpl" hint-placeholder-count="4">
+              <button type="button" onClick="{{ cpl.onClick }}" style="display:flex;align-items:center;gap:8px;border:1.5px solid {{ cpl.border }};background:{{ cpl.bg }};color:{{ cpl.fg }};font-size:14px;font-weight:600;padding:9px 14px;border-radius:999px;cursor:pointer"><span style="width:8px;height:8px;border-radius:999px;background:{{ cpl.color }};display:block"></span>{{ cpl.name }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13px;font-weight:600">Formato</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ comp.types }}" as="cty" hint-placeholder-count="5">
+              <button type="button" onClick="{{ cty.onClick }}" style="border:0;background:{{ cty.bg }};color:{{ cty.fg }};font-size:14px;font-weight:600;padding:9px 14px;border-radius:999px;cursor:pointer">{{ cty.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13px;font-weight:600">Contenido</div>
+          <label style="border:1.5px dashed rgba(11,31,51,0.25);border-radius:16px;padding:20px;display:flex;align-items:center;gap:14px;cursor:pointer;background:#FFFFFF">
+            <span style="width:44px;height:44px;border-radius:999px;background:#BEBEBE;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">+</span>
+            <span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">{{ comp.mediaLabel }}</span><span style="font-size:13px">Imagen o video. Se guarda en tu servidor al publicar.</span></span>
+            <input type="file" accept="image/*,video/*" onChange="{{ comp.onMedia }}" style="display:none">
+          </label>
+          <textarea rows="6" value="{{ comp.caption }}" onChange="{{ comp.onCaption }}" placeholder="Escribe el texto de la publicación…" style="width:100%;font-size:15px;line-height:1.55;padding:14px 16px;border-radius:12px;border:1.5px solid rgba(11,31,51,0.15);outline:none;resize:vertical" style-focus="border-color:#21C4D6"></textarea>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ comp.counters }}" as="cc" hint-placeholder-count="2">
+              <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:{{ cc.bg }};color:{{ cc.fg }}">{{ cc.label }}</span>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+          <label style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600;flex:1 1 220px">Fecha y hora
+            <input type="datetime-local" value="{{ comp.when }}" onChange="{{ comp.onWhen }}" style="font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);outline:none">
+          </label>
+          <div style="font-size:13px;flex:1 1 220px;line-height:1.45">{{ comp.bestTime }}</div>
+        </div>
+        <sc-for list="{{ comp.notes }}" as="cn" hint-placeholder-count="0">
+          <div style="display:flex;gap:10px;font-size:13px;line-height:1.45;background:{{ cn.bg }};padding:10px 14px;border-radius:10px"><span style="font-weight:700;flex-shrink:0">{{ cn.plat }}</span><span>{{ cn.text }}</span></div>
+        </sc-for>
+        <sc-if value="{{ comp.msg }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;font-weight:600;background:#21C4D6;padding:10px 14px;border-radius:10px">{{ comp.msg }}</div></sc-if>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <button type="button" onClick="{{ comp.onDraft }}" style="background:#BEBEBE;border:0;font-size:15px;font-weight:600;padding:13px 20px;border-radius:999px;cursor:pointer">Guardar borrador</button>
+          <button type="button" onClick="{{ comp.onApproval }}" style="background:#FFFFFF;border:1.5px solid #0B1F33;font-size:15px;font-weight:600;padding:12px 20px;border-radius:999px;cursor:pointer">Enviar a aprobación</button>
+          <button type="button" onClick="{{ comp.onSchedule }}" style="background:#FF5A5F;color:#0B1F33;border:0;font-size:15px;font-weight:600;padding:13px 24px;border-radius:999px;cursor:pointer">Programar</button>
+        </div>
+      </div>
+
+      <div style="flex:2 1 320px;min-width:0;display:flex;flex-direction:column;gap:12px;position:sticky;top:20px">
+        <div style="font-size:13px;font-weight:600">Vista previa</div>
+        <div style="background:#FFFFFF;border-radius:20px;overflow:hidden;box-shadow:0 24px 50px -30px rgba(11,31,51,0.4)">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px">
+            <span style="width:34px;height:34px;border-radius:999px;background:{{ client.avatarBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">{{ client.initials }}</span>
+            <span style="font-weight:700;font-size:14px;flex:1">{{ client.handle }}</span><span style="font-weight:700">···</span>
+          </div>
+          <div style="aspect-ratio:{{ comp.ratio }};background:{{ comp.previewBg }};display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">{{ comp.previewLabel }}</div>
+          <div style="padding:12px 14px 16px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:14px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B1F33" stroke-width="1.8"><path d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.65-7 10-7 10z"></path></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B1F33" stroke-width="1.8"><path d="M20 12a8 8 0 1 1-3.3-6.5A8 8 0 0 1 20 12z"></path></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B1F33" stroke-width="1.8" stroke-linejoin="round"><path d="M21 3 3 10l7 3 3 7 8-17z"></path></svg>
+            </div>
+            <div style="font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word"><strong>{{ client.handle }}</strong> {{ comp.previewCaption }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- BANDEJA -->
+  <sc-if value="{{ v.bandeja }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <sc-for list="{{ inboxFilters }}" as="if" hint-placeholder-count="5">
+        <button type="button" onClick="{{ if.onClick }}" style="border:0;cursor:pointer;background:{{ if.bg }};color:{{ if.fg }};font-size:14px;font-weight:600;padding:9px 16px;border-radius:999px">{{ if.label }}</button>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+      <div style="flex:1 1 320px;min-width:0;background:#FFFFFF;border-radius:20px;padding:10px;display:flex;flex-direction:column">
+        <sc-for list="{{ inbox }}" as="im" hint-placeholder-count="6">
+          <button type="button" onClick="{{ im.onClick }}" style="text-align:left;border:0;cursor:pointer;background:{{ im.bg }};border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start">
+            <span style="width:38px;height:38px;border-radius:999px;background:#123553;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">{{ im.initials }}</span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+              <span style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:700;font-size:14px">{{ im.author }}</span><span style="font-size:12px;white-space:nowrap">{{ im.ago }}</span></span>
+              <span style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ im.text }}</span>
+              <span style="display:flex;gap:6px;align-items:center;font-size:12px"><span style="width:8px;height:8px;border-radius:999px;background:{{ im.color }};display:block"></span>{{ im.platName }} · {{ im.kindLabel }}<sc-if value="{{ im.replied }}" hint-placeholder-val="{{ false }}"><span style="font-weight:700">· Respondido</span></sc-if></span>
+            </span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ inboxEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:32px;text-align:center;font-size:15px">Todo al día.</div></sc-if>
+      </div>
+      <div style="flex:2 1 400px;min-width:0;background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px">
+        <sc-if value="{{ msg.none }}" hint-placeholder-val="{{ true }}"><div style="padding:40px;text-align:center;font-size:15px">Selecciona un mensaje o comentario.</div></sc-if>
+        <sc-if value="{{ msg.has }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">{{ msg.author }}</span><span style="font-size:13px">{{ msg.platName }} · {{ msg.kindLabel }} · {{ msg.ago }}</span></div>
+            <sc-if value="{{ msg.hasStars }}" hint-placeholder-val="{{ false }}"><span style="font-size:18px;letter-spacing:2px;color:#FF5A5F">{{ msg.stars }}</span></sc-if>
+          </div>
+          <sc-if value="{{ msg.hasPost }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;background:#BEBEBE;padding:10px 14px;border-radius:10px">En la publicación: {{ msg.post }}</div></sc-if>
+          <div style="align-self:flex-start;background:#BEBEBE;padding:14px 18px;border-radius:20px 20px 20px 6px;font-size:15px;max-width:85%;line-height:1.45">{{ msg.text }}</div>
+          <sc-if value="{{ msg.replied }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-end;background:#0B1F33;color:#FFFFFF;padding:14px 18px;border-radius:20px 20px 6px 20px;font-size:15px;max-width:85%;line-height:1.45">{{ msg.reply }}</div></sc-if>
+          <sc-if value="{{ msg.windowNote }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;line-height:1.45">{{ msg.windowNote }}</div></sc-if>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <sc-for list="{{ quickReplies }}" as="qr" hint-placeholder-count="3">
+              <button type="button" onClick="{{ qr.onClick }}" style="border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;cursor:pointer;font-size:13px;padding:7px 12px;border-radius:999px">{{ qr.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <textarea rows="2" value="{{ replyText }}" onChange="{{ onReplyText }}" placeholder="Escribe una respuesta…" style="flex:1;min-width:0;font-size:15px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(11,31,51,0.15);outline:none;resize:vertical" style-focus="border-color:#21C4D6"></textarea>
+            <button type="button" onClick="{{ sendReply }}" style="background:#FF5A5F;color:#0B1F33;border:0;font-size:15px;font-weight:600;padding:13px 20px;border-radius:999px;cursor:pointer">Responder</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- APROBACIONES -->
+  <sc-if value="{{ v.aprobaciones }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ approvalsEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#FFFFFF;border-radius:20px;padding:56px 32px;text-align:center;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:24px">No hay publicaciones esperando aprobación.</div>
+    </sc-if>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px">
+      <sc-for list="{{ approvals }}" as="ap" hint-placeholder-count="3">
+        <div style="background:#FFFFFF;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease" style-hover="transform:translateY(-6px);box-shadow:0 24px 40px -24px rgba(11,31,51,0.35)">
+          <div style="aspect-ratio:4 / 3;background:{{ ap.toneBg }};color:{{ ap.toneFg }};display:flex;align-items:flex-end;justify-content:space-between;padding:16px">
+            <span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">{{ ap.type }}</span>
+            <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{ ap.stBg }};color:{{ ap.stFg }}">{{ ap.stLabel }}</span>
+          </div>
+          <div style="padding:18px;display:flex;flex-direction:column;gap:12px;flex:1">
+            <div style="font-size:13px;font-weight:600">{{ ap.dateLabel }} · {{ ap.platLabel }}</div>
+            <div style="font-size:15px;line-height:1.5">{{ ap.caption }}</div>
+            <sc-if value="{{ ap.hasFeedback }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;background:#FFE1E2;padding:10px 12px;border-radius:10px;line-height:1.45"><strong>Comentario:</strong> {{ ap.feedback }}</div></sc-if>
+            <sc-if value="{{ canApproveRole }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top:auto;display:flex;gap:8px;flex-wrap:wrap">
+              <button type="button" onClick="{{ ap.onApprove }}" style="flex:1;background:#0B1F33;color:#FFFFFF;border:0;font-size:14px;font-weight:600;padding:11px;border-radius:999px;cursor:pointer">Aprobar</button>
+              <button type="button" onClick="{{ ap.onChanges }}" style="flex:1;background:#FFFFFF;border:1.5px solid rgba(11,31,51,0.2);font-size:14px;font-weight:600;padding:10px;border-radius:999px;cursor:pointer">Pedir cambios</button>
+            </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- REPORTES -->
+  <sc-if value="{{ v.reportes }}" hint-placeholder-val="{{ false }}">
+    <div data-noprint="" style="display:flex;justify-content:flex-end">
+      <button type="button" onClick="{{ printReport }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:15px;font-weight:600;padding:13px 22px;border-radius:999px;cursor:pointer">Descargar reporte (PDF)</button>
+    </div>
+    <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px;overflow-x:auto">
+      <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Resumen por red · últimos 30 días</div>
+      <div style="min-width:640px;display:grid;grid-template-columns:1.4fr repeat(5,minmax(0,1fr));font-size:14px">
+        <sc-for list="{{ reportHead }}" as="rh" hint-placeholder-count="6"><div style="font-size:12px;font-weight:700;padding:10px 8px;border-bottom:1.5px solid #0B1F33">{{ rh }}</div></sc-for>
+        <sc-for list="{{ reportCells }}" as="rc" hint-placeholder-count="18"><div style="padding:12px 8px;border-bottom:1px solid rgba(11,31,51,0.08);font-weight:{{ rc.w }};display:flex;align-items:center;gap:8px"><sc-if value="{{ rc.hasDot }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:999px;background:{{ rc.dot }};display:block"></span></sc-if>{{ rc.text }}</div></sc-for>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch">
+      <div style="flex:1 1 300px;min-width:0;background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Edad de la audiencia</div>
+        <sc-for list="{{ ages }}" as="ag" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:56px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:13px"><span>{{ ag.label }}</span><span style="height:12px;border-radius:999px;background:#BEBEBE;overflow:hidden;display:block"><span style="display:block;height:100%;width:{{ ag.pct }};background:#21C4D6;border-radius:999px"></span></span><span style="font-weight:700;text-align:right">{{ ag.pct }}</span></div>
+        </sc-for>
+      </div>
+      <div style="flex:1 1 300px;min-width:0;background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Ciudades principales</div>
+        <sc-for list="{{ cities }}" as="cy" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:110px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:13px"><span>{{ cy.label }}</span><span style="height:12px;border-radius:999px;background:#BEBEBE;overflow:hidden;display:block"><span style="display:block;height:100%;width:{{ cy.pct }};background:#123553;border-radius:999px"></span></span><span style="font-weight:700;text-align:right">{{ cy.pct }}</span></div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:14px;overflow-x:auto">
+      <div style="display:flex;flex-direction:column;gap:4px"><div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Mejores horas para publicar</div><div style="font-size:14px">Cuándo está conectada tu audiencia (más oscuro = más activa).</div></div>
+      <div style="min-width:560px;display:grid;grid-template-columns:48px repeat(9,minmax(0,1fr));gap:4px;font-size:12px">
+        <span></span>
+        <sc-for list="{{ heatHours }}" as="hh" hint-placeholder-count="9"><span style="text-align:center;font-weight:600">{{ hh }}</span></sc-for>
+        <sc-for list="{{ heatCells }}" as="hc" hint-placeholder-count="70">
+          <span style="height:30px;border-radius:6px;background:{{ hc.bg }};display:flex;align-items:center;font-weight:600">{{ hc.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- NOVEDADES -->
+  <sc-if value="{{ v.novedades }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ isCM }}" hint-placeholder-val="{{ true }}">
+      <div style="background:#FFFFFF;border-radius:20px;padding:20px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <textarea rows="2" value="{{ noteText }}" onChange="{{ onNoteText }}" placeholder="Deja una nota para el cliente (ej. “Esta semana probamos reels de 15 s”)" style="flex:1 1 320px;min-width:0;font-size:15px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(11,31,51,0.15);outline:none;resize:vertical" style-focus="border-color:#21C4D6"></textarea>
+        <button type="button" onClick="{{ addNote }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:15px;font-weight:600;padding:13px 22px;border-radius:999px;cursor:pointer">Publicar nota</button>
+      </div>
+    </sc-if>
+    <div style="background:#FFFFFF;border-radius:20px;padding:12px 24px;display:flex;flex-direction:column">
+      <sc-for list="{{ news }}" as="nw" hint-placeholder-count="6">
+        <div style="display:flex;gap:16px;align-items:flex-start;padding:18px 0;border-bottom:1px solid rgba(11,31,51,0.08)">
+          <span style="width:40px;height:40px;border-radius:999px;background:{{ nw.iconBg }};color:{{ nw.iconFg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0">{{ nw.icon }}</span>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="font-size:15px;font-weight:600;line-height:1.4">{{ nw.text }}</span><span style="font-size:13px">{{ nw.when }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- PLAN Y CONTRATO -->
+  <sc-if value="{{ v.plan }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch">
+      <div style="flex:2 1 420px;min-width:0;background:#0B1F33;color:#FFFFFF;border-radius:20px;padding:26px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">Plan contratado</span>
+            <span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:40px;letter-spacing:-0.03em;line-height:1">{{ ct.planName }}</span>
+          </div>
+          <span style="font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;background:{{ ct.stBg }};color:#0B1F33">{{ ct.stLabel }}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:24px">
+          <sc-for list="{{ ct.facts }}" as="fa" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px">{{ fa.label }}</span><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:20px">{{ fa.value }}</span></div></sc-for>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ ct.extras }}" as="ex" hint-placeholder-count="3"><span style="font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,0.12)">{{ ex }}</span></sc-for>
+        </div>
+      </div>
+      <div style="flex:1 1 300px;min-width:0;background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Uso de este mes</span><span style="font-size:13px">{{ ct.monthLabel }}</span></div>
+        <sc-for list="{{ ct.usage }}" as="us" hint-placeholder-count="4">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;justify-content:space-between;font-size:14px"><span>{{ us.label }}</span><span style="font-weight:700">{{ us.text }}</span></div>
+            <span style="height:10px;border-radius:999px;background:#BEBEBE;overflow:hidden;display:block"><span style="display:block;height:100%;width:{{ us.pct }};background:{{ us.bar }};border-radius:999px"></span></span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <sc-if value="{{ ct.editing }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px;border:2px solid #21C4D6">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Editar plan y condiciones</span><span style="font-size:13px">{{ ct.editNote }}</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ ct.planPick }}" as="pp" hint-placeholder-count="3"><button type="button" onClick="{{ pp.onClick }}" style="border:1.5px solid {{ pp.border }};background:{{ pp.bg }};color:{{ pp.fg }};font-size:14px;font-weight:600;padding:10px 16px;border-radius:999px;cursor:pointer">{{ pp.label }}</button></sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:14px">
+          <sc-for list="{{ ct.editFields }}" as="ef" hint-placeholder-count="10">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">{{ ef.label }}<input type="{{ ef.type }}" value="{{ ef.value }}" onChange="{{ ef.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6"></label>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:13px;font-weight:600">Servicios adicionales</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ ct.addonPick }}" as="ao" hint-placeholder-count="5"><button type="button" onClick="{{ ao.onClick }}" style="border:1.5px solid {{ ao.border }};background:{{ ao.bg }};color:{{ ao.fg }};font-size:13px;font-weight:600;padding:8px 13px;border-radius:999px;cursor:pointer">{{ ao.label }}</button></sc-for></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button type="button" onClick="{{ ct.onSaveDraft }}" style="background:#BEBEBE;border:0;font-size:15px;font-weight:600;padding:13px 20px;border-radius:999px;cursor:pointer">Guardar borrador</button>
+          <button type="button" onClick="{{ ct.onSend }}" style="background:#FF5A5F;color:#0B1F33;border:0;font-size:15px;font-weight:700;padding:13px 22px;border-radius:999px;cursor:pointer">Enviar al cliente para firma</button>
+          <button type="button" onClick="{{ ct.onCancelEdit }}" style="background:#FFFFFF;border:1.5px solid rgba(11,31,51,0.2);font-size:15px;font-weight:600;padding:12px 20px;border-radius:999px;cursor:pointer">Cancelar</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <div data-noprint="" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button type="button" onClick="{{ ct.onPrint }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:15px;font-weight:600;padding:13px 22px;border-radius:999px;cursor:pointer">Imprimir o guardar PDF</button>
+      <sc-if value="{{ ct.canEdit }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ ct.onEdit }}" style="background:#FFFFFF;border:1.5px solid #0B1F33;font-size:15px;font-weight:600;padding:12px 20px;border-radius:999px;cursor:pointer">Editar plan y condiciones</button></sc-if>
+      <sc-if value="{{ ct.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;font-weight:600;background:#21C4D6;padding:10px 14px;border-radius:10px">{{ ct.msg }}</span></sc-if>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+      <div data-contract="" style="flex:3 1 520px;min-width:0;background:#FFFFFF;border-radius:6px;padding:clamp(24px,4vw,56px);display:flex;flex-direction:column;gap:22px;box-shadow:0 30px 60px -30px rgba(11,31,51,0.4)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid #0B1F33;padding-bottom:18px">
+          <div style="width:131px;height:48px;overflow:hidden"><img src="assets/peek-media-logo-horizontal.png" alt="Peek Media" style="height:64px;width:auto;display:block"></div>
+          <div style="text-align:right;font-size:12px;line-height:1.5"><div style="font-weight:700">Contrato {{ ct.number }}</div><div>Versión {{ ct.version }}</div><div>{{ ct.docDate }}</div></div>
+        </div>
+        <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:26px;letter-spacing:-0.02em;line-height:1.1">Contrato de servicios de marketing digital</div>
+        <div style="font-size:12px;background:#FFE1E2;padding:8px 12px;border-radius:8px" data-noprint="">Plantilla de demostración. Los textos entre corchetes y las condiciones deben revisarse con un abogado antes de usarse.</div>
+        <sc-for list="{{ ct.sections }}" as="sec" hint-placeholder-count="8">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:14px;font-weight:700;letter-spacing:0.02em">{{ sec.title }}</div>
+            <sc-for list="{{ sec.paras }}" as="pa" hint-placeholder-count="1"><p style="margin:0;font-size:14px;line-height:1.65;text-wrap:pretty">{{ pa }}</p></sc-for>
+          </div>
+        </sc-for>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:24px;margin-top:12px">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="height:70px;display:flex;align-items:flex-end;font-family:'Caveat',cursive;font-size:38px;line-height:1">Dagoberto Nuñez</div>
+            <div style="border-top:1.5px solid #0B1F33;padding-top:6px;font-size:13px;line-height:1.45"><strong>Dagoberto Nuñez</strong><br>Peek Media</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="height:70px;display:flex;align-items:flex-end">
+              <sc-if value="{{ ct.sigImg }}" hint-placeholder-val="{{ false }}"><div role="img" aria-label="Firma" style="width:100%;height:70px;background:{{ ct.sigBg }}"></div></sc-if>
+              <sc-if value="{{ ct.sigTyped }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Caveat',cursive;font-size:38px;line-height:1">{{ ct.sigTyped }}</span></sc-if>
+              <sc-if value="{{ ct.unsigned }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px">Pendiente de firma</span></sc-if>
+            </div>
+            <div style="border-top:1.5px solid #0B1F33;padding-top:6px;font-size:13px;line-height:1.45"><strong>{{ ct.clientSigner }}</strong><br>{{ ct.clientName }}</div>
+          </div>
+        </div>
+        <sc-if value="{{ ct.signedMeta }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;line-height:1.5;background:#BEBEBE;padding:10px 12px;border-radius:8px;font-family:ui-monospace,monospace">{{ ct.signedMeta }}</div></sc-if>
+      </div>
+
+      <div data-noprint="" style="flex:2 1 320px;min-width:0;display:flex;flex-direction:column;gap:20px">
+        <sc-if value="{{ ct.canSign }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#FFFFFF;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px;border:2px solid #FF5A5F">
+            <span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Firma electrónica</span>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">Nombre completo<input value="{{ ct.sign.name }}" onChange="{{ ct.sign.onName }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6"></label>
+            <div style="display:flex;background:#BEBEBE;border-radius:999px;padding:4px">
+              <sc-for list="{{ ct.sign.tabs }}" as="sgt" hint-placeholder-count="2"><button type="button" onClick="{{ sgt.onClick }}" style="flex:1;border:0;cursor:pointer;background:{{ sgt.bg }};color:{{ sgt.fg }};font-size:14px;font-weight:600;padding:9px;border-radius:999px">{{ sgt.label }}</button></sc-for>
+            </div>
+            <sc-if value="{{ ct.sign.isType }}" hint-placeholder-val="{{ true }}">
+              <div style="height:110px;border:1.5px dashed rgba(11,31,51,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Caveat',cursive;font-size:44px;padding:0 12px;overflow:hidden;white-space:nowrap">{{ ct.sign.preview }}</div>
+            </sc-if>
+            <sc-if value="{{ ct.sign.isDraw }}" hint-placeholder-val="{{ false }}">
+              <canvas ref="{{ ct.sign.ref }}" width="600" height="220" onPointerDown="{{ ct.sign.onDown }}" onPointerMove="{{ ct.sign.onMove }}" onPointerUp="{{ ct.sign.onUp }}" onPointerLeave="{{ ct.sign.onUp }}" style="width:100%;height:150px;border:1.5px dashed rgba(11,31,51,0.3);border-radius:12px;touch-action:none;cursor:crosshair;background:#FFFFFF"></canvas>
+              <button type="button" onClick="{{ ct.sign.onClear }}" style="align-self:flex-start;background:none;border:0;font-size:13px;font-weight:600;cursor:pointer;padding:0">Borrar y volver a firmar</button>
+            </sc-if>
+            <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;cursor:pointer"><input type="checkbox" checked="{{ ct.sign.accept }}" onChange="{{ ct.sign.onAccept }}" style="width:18px;height:18px;accent-color:#0B1F33;margin-top:1px;flex-shrink:0">Leí el contrato y acepto sus condiciones. Entiendo que esta firma electrónica tiene la misma validez que mi firma a mano.</label>
+            <sc-if value="{{ ct.sign.err }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;background:#FFE1E2;padding:8px 12px;border-radius:10px">{{ ct.sign.err }}</div></sc-if>
+            <button type="button" onClick="{{ ct.sign.onSign }}" style="background:#FF5A5F;color:#0B1F33;border:0;font-size:16px;font-weight:700;padding:15px;border-radius:999px;cursor:pointer">Firmar contrato</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ct.waitingNote }}" hint-placeholder-val="{{ false }}"><div style="background:#FFFFFF;border-radius:20px;padding:20px;font-size:14px;line-height:1.5">{{ ct.waitingNote }}</div></sc-if>
+
+        <div style="background:#FFFFFF;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px">
+          <span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Mejora tu plan</span>
+          <sc-for list="{{ ct.upgrades }}" as="ug" hint-placeholder-count="2">
+            <div style="border:1.5px solid rgba(11,31,51,0.1);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:transform .25s ease" style-hover="transform:translateY(-3px)">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:19px">{{ ug.name }}</span><span style="font-size:13px;font-weight:700">{{ ug.from }}</span></div>
+              <div style="font-size:13px;line-height:1.5">{{ ug.diff }}</div>
+              <button type="button" onClick="{{ ug.onClick }}" style="align-self:flex-start;background:{{ ug.btnBg }};color:#0B1F33;border:0;font-size:13px;font-weight:700;padding:9px 14px;border-radius:999px;cursor:pointer">{{ ug.btn }}</button>
+            </div>
+          </sc-for>
+          <sc-if value="{{ ct.topPlan }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px">Ya tienes nuestro plan más completo.</div></sc-if>
+          <div style="font-size:13px;font-weight:600">Agregar un servicio</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ ct.addonReq }}" as="ar" hint-placeholder-count="4"><button type="button" onClick="{{ ar.onClick }}" style="border:1.5px solid rgba(11,31,51,0.15);background:{{ ar.bg }};font-size:12px;font-weight:600;padding:7px 11px;border-radius:999px;cursor:pointer">{{ ar.label }}</button></sc-for></div>
+        </div>
+
+        <sc-if value="{{ ct.hasRequests }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#FFFFFF;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:12px">
+            <span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Solicitudes</span>
+            <sc-for list="{{ ct.requests }}" as="rq" hint-placeholder-count="1">
+              <div style="display:flex;flex-direction:column;gap:8px;border-bottom:1px solid rgba(11,31,51,0.08);padding-bottom:12px">
+                <div style="display:flex;justify-content:space-between;gap:8px;font-size:14px"><span style="font-weight:700">{{ rq.title }}</span><span style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{ rq.stBg }}">{{ rq.status }}</span></div>
+                <span style="font-size:12px">{{ rq.meta }}</span>
+                <sc-if value="{{ rq.canAct }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:6px"><button type="button" onClick="{{ rq.onApprove }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;cursor:pointer">Aprobar y preparar contrato</button><button type="button" onClick="{{ rq.onReject }}" style="background:#FFFFFF;border:1.5px solid rgba(11,31,51,0.2);font-size:12px;font-weight:600;padding:7px 12px;border-radius:999px;cursor:pointer">Rechazar</button></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <div style="background:#FFFFFF;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:10px">
+          <span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Pagos</span>
+          <sc-for list="{{ ct.invoices }}" as="iv" hint-placeholder-count="4">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;padding:6px 0;border-bottom:1px solid rgba(11,31,51,0.08)"><span>{{ iv.month }}</span><span style="display:flex;gap:10px;align-items:center"><strong>{{ iv.amount }}</strong><span style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{ iv.stBg }}">{{ iv.status }}</span></span></div>
+          </sc-for>
+          <span style="font-size:12px">Datos de demostración. La facturación real se conecta en la fase de código.</span>
+        </div>
+
+        <sc-if value="{{ ct.hasHistory }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#FFFFFF;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:10px">
+            <span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Versiones anteriores</span>
+            <sc-for list="{{ ct.history }}" as="hi" hint-placeholder-count="1"><div style="font-size:14px;display:flex;justify-content:space-between;gap:8px"><span>v{{ hi.version }} · {{ hi.plan }}</span><span>{{ hi.when }}</span></div></sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CONECTAR CUENTAS -->
+  <sc-if value="{{ v.conectar }}" hint-placeholder-val="{{ false }}">
+    <div style="background:#0B1F33;color:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between">
+      <div style="flex:1 1 380px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:28px;letter-spacing:-0.02em">Conecta tus cuentas</div>
+        <div style="font-size:15px;line-height:1.55">Al tocar “Conectar”, te llevamos a la página oficial de cada red. Ahí inicias sesión tú y apruebas el acceso para Peek Media. Nunca vemos ni guardamos tu contraseña, y puedes quitar el acceso cuando quieras.</div>
+      </div>
+      <div style="flex:0 1 240px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:40px;line-height:1">{{ cx.done }}<span style="font-size:20px"> / {{ cx.total }}</span></div>
+        <div style="font-size:13px">redes conectadas</div>
+        <span style="height:8px;border-radius:999px;background:rgba(255,255,255,0.18);overflow:hidden;display:block"><span style="display:block;height:100%;width:{{ cx.pct }};background:#21C4D6;border-radius:999px"></span></span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:16px">
+      <sc-for list="{{ cx.cards }}" as="cc" hint-placeholder-count="6">
+        <div style="background:#FFFFFF;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px;border:2px solid {{ cc.border }};transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease" style-hover="transform:translateY(-4px);box-shadow:0 24px 40px -26px rgba(11,31,51,0.35)">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="width:42px;height:42px;border-radius:12px;background:{{ cc.color }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:14px">{{ cc.short }}</span>
+              <div style="display:flex;flex-direction:column;line-height:1.25"><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:19px">{{ cc.name }}</span><span style="font-size:12px">{{ cc.account }}</span></div>
+            </div>
+            <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{ cc.stBg }};color:{{ cc.stFg }};white-space:nowrap">{{ cc.stLabel }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Nos das permiso para</div>
+            <sc-for list="{{ cc.perms }}" as="pm" hint-placeholder-count="3"><div style="display:flex;gap:8px;font-size:14px;line-height:1.4"><span style="color:#21C4D6;font-weight:700">✓</span><span>{{ pm }}</span></div></sc-for>
+          </div>
+          <sc-if value="{{ cc.showGuide }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#BEBEBE;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:13px;font-weight:700">{{ cc.guideTitle }}</div>
+              <sc-for list="{{ cc.steps }}" as="stp" hint-placeholder-count="3"><div style="display:flex;gap:8px;font-size:13px;line-height:1.45"><span style="width:20px;height:20px;border-radius:999px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">{{ stp.n }}</span><span>{{ stp.text }}</span></div></sc-for>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+                <sc-if value="{{ cc.canDone }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ cc.onDone }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:13px;font-weight:600;padding:10px 14px;border-radius:999px;cursor:pointer">Ya lo hice</button></sc-if>
+                <a href="{{ cc.url }}" target="_blank" rel="noopener" style="background:#FFFFFF;font-size:13px;font-weight:600;padding:10px 14px;border-radius:999px">Abrir de nuevo ↗</a>
+              </div>
+            </div>
+          </sc-if>
+          <div style="margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <sc-if value="{{ cc.canConnect }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ cc.onConnect }}" style="background:#FF5A5F;color:#0B1F33;border:0;font-size:14px;font-weight:700;padding:12px 18px;border-radius:999px;cursor:pointer">{{ cc.connectLabel }}</button></sc-if>
+            <sc-if value="{{ cc.canConfirm }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ cc.onConfirm }}" style="background:#21C4D6;color:#0B1F33;border:0;font-size:14px;font-weight:700;padding:12px 18px;border-radius:999px;cursor:pointer">Confirmar conexión</button></sc-if>
+            <sc-if value="{{ cc.canDisconnect }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ cc.onDisconnect }}" style="background:#FFFFFF;border:1.5px solid rgba(11,31,51,0.2);font-size:13px;font-weight:600;padding:10px 14px;border-radius:999px;cursor:pointer">Quitar acceso</button></sc-if>
+            <span style="font-size:12px;margin-left:auto">{{ cc.via }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <sc-if value="{{ isTeam }}" hint-placeholder-val="{{ true }}">
+      <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Apps de Peek Media (solo equipo)</div>
+          <div style="font-size:14px;line-height:1.5">{{ cx.appsHint }}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:14px">
+          <sc-for list="{{ cx.appFields }}" as="af" hint-placeholder-count="8">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">{{ af.label }}<input value="{{ af.value }}" placeholder="{{ af.ph }}" onChange="{{ af.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6"></label>
+              <details style="background:#BEBEBE;border-radius:10px;padding:10px 12px;font-size:13px">
+                <summary style="cursor:pointer;font-weight:600;list-style-position:inside">¿Cómo lo consigo?</summary>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+                  <sc-for list="{{ af.steps }}" as="afs" hint-placeholder-count="3"><div style="display:flex;gap:8px;line-height:1.45"><span style="width:18px;height:18px;border-radius:999px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">{{ afs.n }}</span><span>{{ afs.text }}</span></div></sc-for>
+                  <a href="{{ af.url }}" target="_blank" rel="noopener" style="align-self:flex-start;background:#FFFFFF;font-weight:600;padding:7px 12px;border-radius:999px;word-break:break-all">{{ af.urlLabel }} ↗</a>
+                </div>
+              </details>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <!-- GESTIÓN DE CLIENTES -->
+  <sc-if value="{{ v.clientes }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;gap:14px;align-items:flex-start;background:#0B1F33;color:#FFFFFF;border-radius:20px;padding:20px 24px">
+      <span style="width:36px;height:36px;border-radius:999px;background:#21C4D6;color:#0B1F33;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">◎</span>
+      <div style="font-size:15px;line-height:1.55">Cada cliente tiene su propio espacio separado. Sus publicaciones, métricas, mensajes, notas y accesos se guardan aparte, y cada persona que invitas solo puede entrar al espacio de su cliente.</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+      <div style="flex:1 1 280px;min-width:0;background:#FFFFFF;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <button type="button" onClick="{{ mg.onNew }}" style="background:#FF5A5F;color:#0B1F33;border:0;font-size:15px;font-weight:700;padding:13px;border-radius:999px;cursor:pointer">+ Nuevo cliente</button>
+        <sc-for list="{{ mg.list }}" as="mi" hint-placeholder-count="3">
+          <button type="button" onClick="{{ mi.onClick }}" style="display:flex;align-items:center;gap:12px;text-align:left;border:1.5px solid {{ mi.border }};background:{{ mi.bg }};border-radius:14px;padding:12px;cursor:pointer;transition:transform .2s ease" style-hover="transform:translateY(-2px)">
+            <span style="width:40px;height:40px;border-radius:999px;background:{{ mi.avatarBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:14px;flex-shrink:0">{{ mi.initials }}</span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3"><span style="font-weight:700;font-size:15px">{{ mi.name }}</span><span style="font-size:12px">{{ mi.sub }}</span></span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="flex:3 1 520px;min-width:0;display:flex;flex-direction:column;gap:20px">
+        <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:24px">{{ mg.title }}</div>
+            <sc-if value="{{ mg.canOpen }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ mg.onOpen }}" style="background:#BEBEBE;border:0;font-size:14px;font-weight:600;padding:10px 16px;border-radius:999px;cursor:pointer">Abrir su espacio →</button></sc-if>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:16px">
+            <sc-for list="{{ mg.fields }}" as="mf" hint-placeholder-count="6"><label style="grid-column:{{ mf.span }};display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600">{{ mf.label }}<input type="{{ mf.type }}" value="{{ mf.value }}" placeholder="{{ mf.ph }}" onChange="{{ mf.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6"></label></sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;font-weight:600">Color del espacio</div>
+            <div style="display:flex;gap:10px">
+              <sc-for list="{{ mg.colors }}" as="mc" hint-placeholder-count="4"><button type="button" onClick="{{ mc.onClick }}" aria-label="Color" style="width:36px;height:36px;border-radius:999px;background:{{ mc.color }};border:3px solid {{ mc.ring }};cursor:pointer"></button></sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;font-weight:600">Redes que manejamos</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ mg.plats }}" as="mp" hint-placeholder-count="9">
+                <button type="button" onClick="{{ mp.onClick }}" style="display:flex;align-items:center;gap:8px;border:1.5px solid {{ mp.border }};background:{{ mp.bg }};color:{{ mp.fg }};font-size:13px;font-weight:600;padding:8px 13px;border-radius:999px;cursor:pointer"><span style="width:8px;height:8px;border-radius:999px;background:{{ mp.color }};display:block"></span>{{ mp.name }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{ mg.msg }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;font-weight:600;background:#21C4D6;padding:10px 14px;border-radius:10px">{{ mg.msg }}</div></sc-if>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button type="button" onClick="{{ mg.onSave }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:15px;font-weight:600;padding:13px 24px;border-radius:999px;cursor:pointer">{{ mg.saveLabel }}</button>
+            <sc-if value="{{ mg.canDelete }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ mg.onDelete }}" style="background:#FFFFFF;border:1.5px solid rgba(255,90,95,0.5);font-size:15px;font-weight:600;padding:12px 20px;border-radius:999px;cursor:pointer">Eliminar espacio</button></sc-if>
+          </div>
+        </div>
+
+        <sc-if value="{{ mg.canOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:24px">Accesos</div>
+            <div style="font-size:14px;line-height:1.5">Cada persona entra con su correo y un código propio. <strong>Administrador</strong> aprueba y ve todo · <strong>Aprobador</strong> aprueba publicaciones · <strong>Solo lectura</strong> ve reportes y calendario.</div>
+          </div>
+          <sc-if value="{{ mg.noUsers }}" hint-placeholder-val="{{ false }}"><div style="border:1.5px dashed rgba(11,31,51,0.25);border-radius:14px;padding:20px;text-align:center;font-size:14px">Aún no hay accesos. Invita a alguien del equipo del cliente.</div></sc-if>
+          <sc-for list="{{ mg.users }}" as="mu" hint-placeholder-count="1">
+            <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border:1.5px solid rgba(11,31,51,0.08);border-radius:14px;padding:14px;opacity:{{ mu.op }}">
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                <span style="font-weight:700;font-size:15px">{{ mu.name }}</span>
+                <span style="font-size:13px">{{ mu.email }} · {{ mu.role }}</span>
+                <span style="font-size:13px;display:flex;gap:8px;align-items:center">Código: <span style="font-family:ui-monospace,monospace;font-weight:700;background:#BEBEBE;padding:2px 8px;border-radius:6px">{{ mu.code }}</span><span style="font-weight:600">{{ mu.status }}</span></span>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button type="button" onClick="{{ mu.onCopy }}" style="background:#21C4D6;border:0;font-size:13px;font-weight:600;padding:9px 12px;border-radius:999px;cursor:pointer">Copiar invitación</button>
+                <button type="button" onClick="{{ mu.onRegen }}" style="background:#FFFFFF;border:1.5px solid rgba(11,31,51,0.15);font-size:13px;font-weight:600;padding:8px 12px;border-radius:999px;cursor:pointer">Nuevo código</button>
+                <button type="button" onClick="{{ mu.onToggle }}" style="background:#FFFFFF;border:1.5px solid rgba(11,31,51,0.15);font-size:13px;font-weight:600;padding:8px 12px;border-radius:999px;cursor:pointer">{{ mu.toggleLabel }}</button>
+                <button type="button" onClick="{{ mu.onRemove }}" style="background:#FFFFFF;border:1.5px solid rgba(255,90,95,0.5);font-size:13px;font-weight:600;padding:8px 12px;border-radius:999px;cursor:pointer">Quitar</button>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:10px;align-items:end;background:#BEBEBE;border-radius:14px;padding:14px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">Nombre<input value="{{ mg.nu.name }}" onChange="{{ mg.nu.onName }}" placeholder="Ej. Ana Pérez" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none"></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">Correo<input type="email" value="{{ mg.nu.email }}" onChange="{{ mg.nu.onEmail }}" placeholder="ana@negocio.com" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none"></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">Rol<select value="{{ mg.nu.role }}" onChange="{{ mg.nu.onRole }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none"><option value="Administrador">Administrador</option><option value="Aprobador">Aprobador</option><option value="Solo lectura">Solo lectura</option></select></label>
+            <button type="button" onClick="{{ mg.nu.onAdd }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:14px;font-weight:600;padding:13px;border-radius:999px;cursor:pointer">Invitar</button>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CONEXIONES -->
+  <sc-if value="{{ v.conexiones }}" hint-placeholder-val="{{ false }}">
+    <div style="font-size:15px;line-height:1.55;max-width:760px">Lo que cada red permite hacer desde este sistema, según sus APIs oficiales. Para activarlo hace falta un servidor propio y la aprobación de cada plataforma.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:16px">
+      <sc-for list="{{ caps }}" as="cap" hint-placeholder-count="6">
+        <div style="background:#FFFFFF;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:12px;border-radius:999px;background:{{ cap.color }};display:block"></span><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:20px">{{ cap.name }}</span></div>
+            <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{ cap.stBg }};color:{{ cap.stFg }}">{{ cap.status }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ cap.can }}" as="cy1" hint-placeholder-count="3"><div style="display:flex;gap:10px;font-size:14px;line-height:1.45"><span style="color:#21C4D6;font-weight:700;flex-shrink:0">✓</span><span>{{ cy1 }}</span></div></sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(11,31,51,0.08);padding-top:12px">
+            <sc-for list="{{ cap.cannot }}" as="cn1" hint-placeholder-count="2"><div style="display:flex;gap:10px;font-size:14px;line-height:1.45"><span style="color:#FF5A5F;font-weight:700;flex-shrink:0">✕</span><span>{{ cn1 }}</span></div></sc-for>
+          </div>
+          <div style="font-size:12px;line-height:1.45;background:#BEBEBE;padding:10px 12px;border-radius:10px;margin-top:auto">{{ cap.req }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+</main>
+
+<sc-if value="{{ modal.open }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ modal.close }}" style="position:fixed;inset:0;background:rgba(11,31,51,0.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px">
+    <div onClick="{{ stop }}" style="width:100%;max-width:720px;max-height:90vh;overflow:auto;background:#FFFFFF;border-radius:28px;display:flex;flex-wrap:wrap">
+      <div style="flex:1 1 260px;min-height:260px;background:{{ modal.toneBg }};color:{{ modal.toneFg }};display:flex;align-items:flex-end;padding:20px;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:28px">{{ modal.type }}</div>
+      <div style="flex:1 1 320px;padding:24px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{ modal.stBg }};color:{{ modal.stFg }}">{{ modal.stLabel }}</span>
+          <button type="button" onClick="{{ modal.close }}" style="border:0;background:#BEBEBE;width:34px;height:34px;border-radius:999px;cursor:pointer;font-size:16px">×</button>
+        </div>
+        <div style="font-size:13px;font-weight:600">{{ modal.dateLabel }} · {{ modal.platLabel }}</div>
+        <div style="font-size:16px;line-height:1.55">{{ modal.caption }}</div>
+        <sc-if value="{{ modal.hasMetrics }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px">
+            <sc-for list="{{ modal.metrics }}" as="mm" hint-placeholder-count="5">
+              <div style="background:#BEBEBE;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;font-weight:600">{{ mm.label }}</span><span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:18px">{{ mm.value }}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ modal.hasFeedback }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;background:#FFE1E2;padding:10px 12px;border-radius:10px"><strong>Comentario del cliente:</strong> {{ modal.feedback }}</div></sc-if>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+          <sc-if value="{{ modal.canApprove }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ modal.onApprove }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:14px;font-weight:600;padding:11px 18px;border-radius:999px;cursor:pointer">Aprobar</button>
+            <button type="button" onClick="{{ modal.onChanges }}" style="background:#FFFFFF;border:1.5px solid rgba(11,31,51,0.2);font-size:14px;font-weight:600;padding:10px 18px;border-radius:999px;cursor:pointer">Pedir cambios</button>
+          </sc-if>
+          <sc-if value="{{ modal.canDelete }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ modal.onDelete }}" style="background:#FFFFFF;border:1.5px solid rgba(255,90,95,0.5);font-size:14px;font-weight:600;padding:10px 18px;border-radius:999px;cursor:pointer">Eliminar</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PLAT = {
+  ig: { name: 'Instagram', short: 'IG', color: '#FF5A5F', limit: 2200 },
+  fb: { name: 'Facebook', short: 'FB', color: '#123553', limit: 63206 },
+  tt: { name: 'TikTok', short: 'TT', color: '#0B1F33', limit: 2200 },
+  yt: { name: 'YouTube', short: 'YT', color: '#21C4D6', limit: 5000 },
+  gbp: { name: 'Google Business', short: 'G', color: '#5B7A99', limit: 1500 },
+  li: { name: 'LinkedIn', short: 'IN', color: '#8FA3B5', limit: 3000 },
+  th: { name: 'Threads', short: 'TH', color: '#3E5C76', limit: 500 },
+  x: { name: 'X', short: 'X', color: '#6B7F94', limit: 280 },
+  pin: { name: 'Pinterest', short: 'PI', color: '#E8898C', limit: 500 }
+};
+const CLIENTS = [
+  { id: 'cafe', name: 'Café Colonial', handle: 'cafecolonial.rd', industry: 'Cafetería · Zona Colonial', avatarBg: '#FF5A5F', platforms: ['ig', 'fb', 'tt', 'gbp', 'th', 'pin'], base: { ig: 4200, fb: 2600, tt: 1800, th: 640, pin: 380 },
+    types: ['Reel', 'Carrusel', 'Post', 'Historia'],
+    captions: ['Tu primer café del día merece este lugar.', 'Nuevo: cold brew de cacao dominicano.', 'Así se prepara nuestro café de Jarabacoa.', 'Sábado de brunch en la Zona Colonial.', 'Adivina el ingrediente secreto de este postre.', '3 cafés que tienes que probar este mes.', 'Detrás de la barra con nuestro barista.', 'Promo 2x1 los martes antes de las 10 a. m.'] },
+  { id: 'clinica', name: 'Clínica Sonrisa', handle: 'clinicasonrisa', industry: 'Odontología · Piantini', avatarBg: '#123553', platforms: ['ig', 'fb', 'tt', 'yt', 'gbp', 'th'], base: { ig: 6800, fb: 5100, tt: 2100, yt: 920, th: 900 },
+    types: ['Reel', 'Carrusel', 'Post', 'Short'],
+    captions: ['5 hábitos que tu dentista quiere que sepas.', '¿Blanqueamiento o limpieza? Te explicamos.', 'Conoce a nuestro equipo en Piantini.', 'Antes y después: ortodoncia invisible.', 'Mitos del cepillado que debes olvidar.', 'Tu sonrisa, nuestro trabajo diario.', 'Preguntas frecuentes sobre implantes.', 'Agenda tu evaluación este mes.'] },
+  { id: 'torre', name: 'Torre Mar Residences', handle: 'torremar.rd', industry: 'Inmobiliaria · Juan Dolio', avatarBg: '#21C4D6', platforms: ['ig', 'fb', 'yt', 'li', 'x', 'pin'], base: { ig: 9400, fb: 7300, yt: 1500, li: 640, x: 420, pin: 760 },
+    types: ['Reel', 'Carrusel', 'Video', 'Post'],
+    captions: ['Vista al mar desde el piso 12.', 'Avance de obra de este mes.', 'Así se vive en Juan Dolio.', 'Planos de 2 y 3 habitaciones.', 'Tour virtual del apartamento modelo.', 'Invertir en la costa: lo que debes saber.', 'Amenidades: piscina infinita y gimnasio.', 'Plan de pagos y fecha estimada de entrega.'] }
+];
+const ST = {
+  publicado: { label: 'Publicado', bg: '#0B1F33', fg: '#FFFFFF' },
+  programado: { label: 'Programado', bg: '#21C4D6', fg: '#0B1F33' },
+  pendiente: { label: 'Por aprobar', bg: '#FFE1E2', fg: '#0B1F33' },
+  cambios: { label: 'Cambios pedidos', bg: '#FF5A5F', fg: '#0B1F33' },
+  borrador: { label: 'Borrador', bg: '#BEBEBE', fg: '#0B1F33' }
+};
+const TONES = [['#123553', '#FFFFFF'], ['#21C4D6', '#0B1F33'], ['#BEBEBE', '#0B1F33'], ['#0B1F33', '#FFFFFF']];
+const NAMES = ['María Fernández', 'José Peña', 'Carla Rosario', 'Luis Almonte', 'Ana Jiménez', 'Pedro Castillo', 'Yohanna Reyes', 'Miguel Taveras', 'Laura Guzmán', 'Ramón Vásquez'];
+const TXT = {
+  comentario: ['¿Cuál es el horario del fin de semana?', '¿Precio, por favor?', 'Me encantó, ¡felicidades!', '¿Dónde están ubicados exactamente?', 'Excelente, los recomiendo siempre.', '¿Tienen disponibilidad esta semana?'],
+  mensaje: ['Hola, quisiera más información.', '¿Aceptan tarjeta de crédito?', '¿Me pueden llamar? Estoy interesado.', 'Buenas, ¿cómo hago una reserva?'],
+  resena: ['Muy buena atención, volveré.', 'Todo excelente, recomendados.', 'El lugar es bonito pero tardaron un poco.']
+};
+const CAPS = [
+  { id: 'ig', can: ['Publicar fotos, carruseles (hasta 10), reels e historias en cuentas profesionales.', 'Programar: el servidor publica a la hora elegida.', 'Métricas de cuenta y de cada post: alcance, interacciones, guardados, visitas al perfil.', 'Demografía de seguidores (cuentas con 100+ seguidores).', 'Leer, responder, ocultar y borrar comentarios.', 'Responder DMs dentro de 24 h desde el último mensaje del usuario.', 'Ver seguidores y posts públicos de otras cuentas profesionales (competencia).'],
+    cannot: ['Cuentas personales.', 'Música de la biblioteca, filtros, stickers de encuesta o enlace en historias.', 'Editar un post ya publicado.', 'Ver la lista de seguidores o quién dejó de seguir.', 'Programación nativa: sin servidor propio no se publica a la hora.'],
+    req: 'Meta App + Revisión de la app (instagram_business_content_publish, manage_comments, manage_messages, manage_insights) + verificación del negocio. Hasta 100 posts por API cada 24 h.' },
+  { id: 'fb', can: ['Publicar y programar de forma nativa en Páginas: texto, fotos, videos, reels y enlaces.', 'Métricas de Página y de cada publicación.', 'Responder comentarios y mensajes de Messenger (regla de 24 h).', 'Anuncios con Marketing API: crear, pausar y medir campañas.'],
+    cannot: ['Perfiles personales y grupos.', 'Historias de Facebook con stickers o música.', 'Leer mensajes de más de 24 h sin etiqueta de mensaje aprobada.'],
+    req: 'La misma Meta App que Instagram. Permisos pages_manage_posts, pages_read_engagement, pages_messaging y ads_management.' },
+  { id: 'tt', can: ['Publicar videos y fotos (Content Posting API).', 'Enviar como borrador a la bandeja de TikTok para que el cliente lo termine en la app.', 'Datos de perfil y videos; métricas avanzadas con TikTok Business API.'],
+    cannot: ['Sin auditoría de TikTok, todo lo publicado queda privado y solo 5 usuarios pueden publicar por día.', 'Unos 15 posts por día por cuenta.', 'Sonidos en tendencia, efectos y programación nativa.', 'Mensajes directos.'],
+    req: 'App en TikTok for Developers + auditoría de Direct Post con video demo del flujo completo.' },
+  { id: 'yt', can: ['Subir videos y Shorts y programarlos de forma nativa (privado + fecha de publicación).', 'Editar título, descripción, miniatura y listas.', 'YouTube Analytics: vistas, horas de reproducción, suscriptores, demografía, fuentes de tráfico.', 'Responder y moderar comentarios.'],
+    cannot: ['Sin auditoría de Google, todo lo subido queda privado.', 'Publicaciones de Comunidad.', 'Marcar un video como Short: YouTube lo decide por formato y duración.'],
+    req: 'Proyecto en Google Cloud + OAuth verificado + auditoría de la YouTube API. Cuota por defecto: 100 subidas al día.' },
+  { id: 'gbp', can: ['Publicar novedades, ofertas y eventos en el perfil de Google.', 'Leer y responder reseñas.', 'Métricas: vistas en Búsqueda y Maps, llamadas, clics a la web, solicitudes de cómo llegar.', 'Editar horario, teléfono y datos del negocio.'],
+    cannot: ['Borrar reseñas negativas (solo responder o reportar).', 'Usar la API sin que Google apruebe el acceso.'],
+    req: 'Solicitud de acceso a las APIs de Google Business Profile + proyecto en Google Cloud.' },
+  { id: 'li', can: ['Publicar y programar en páginas de empresa.', 'Métricas de página y de publicaciones.', 'Responder comentarios en la página.'],
+    cannot: ['Perfiles personales sin permisos especiales.', 'Nada de esto sin ser aprobado como partner.'],
+    req: 'Solicitud a LinkedIn Community Management API (aprobación como partner).' },
+  { id: 'th', can: ['Publicar texto, imágenes, videos y carruseles.', 'Programar: el servidor publica a la hora elegida.', 'Métricas de perfil y de cada post.', 'Leer, responder y ocultar respuestas.'],
+    cannot: ['Mensajes directos.', 'Programación nativa.'],
+    req: 'Threads API de Meta con App Review (threads_basic, threads_content_publish, threads_manage_insights, threads_manage_replies). Unos 250 posts por día.' },
+  { id: 'x', can: ['Publicar posts con imágenes o video, e hilos.', 'Programar con servidor propio.', 'Métricas de posts y responder menciones.'],
+    cannot: ['No es gratis: la API cobra por publicación y por lectura.', 'Programación nativa.'],
+    req: 'Cuenta de desarrollador en X con pago por uso.' },
+  { id: 'pin', can: ['Crear pines de imagen o video en tableros.', 'Crear y organizar tableros.', 'Métricas de pines y de la cuenta (cuentas de empresa).'],
+    cannot: ['Mensajes directos.', 'Programación nativa desde la API.'],
+    req: 'App en Pinterest Developers con acceso estándar aprobado.' }
+];
+
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+const fmt = (n) => Number(n).toLocaleString('es-DO', { maximumFractionDigits: 1 });
+const compact = (n) => n >= 10000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : fmt(Math.round(n));
+const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const DOW = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const REG_KEY = 'pm-dash-clients-v1';
+const TEAM = { email: 'equipo@peekmedia.rd', pass: 'demo2026', name: 'Equipo Peek Media' };
+const SEED_USERS = {
+  cafe: [{ id: 'u-cafe1', name: 'Dueña · Café Colonial', email: 'cafe@demo.do', role: 'Administrador', code: 'CAFE-2026', active: true }],
+  clinica: [{ id: 'u-cli1', name: 'Dirección · Clínica Sonrisa', email: 'clinica@demo.do', role: 'Administrador', code: 'SONR-2026', active: true }, { id: 'u-cli2', name: 'Recepción', email: 'recepcion@demo.do', role: 'Solo lectura', code: 'RECP-2026', active: true }],
+  torre: [{ id: 'u-tor1', name: 'Gerencia comercial', email: 'torre@demo.do', role: 'Aprobador', code: 'TORR-2026', active: true }]
+};
+const GENERIC_CAPTIONS = ['Conoce lo nuevo de esta semana.', 'Detrás de cámaras de nuestro equipo.', 'Preguntas que siempre nos hacen.', 'Así trabajamos para ti.', 'Una promo que no te puedes perder.', 'Lo que dicen nuestros clientes.', 'Tips rápidos para ti.', 'Te presentamos nuestro servicio estrella.'];
+const AVATARS = ['#FF5A5F', '#123553', '#21C4D6', '#0B1F33'];
+const PROVIDER = { ig: 'meta', fb: 'meta', th: 'meta', yt: 'google', gbp: 'google', tt: 'tiktok', li: 'linkedin', pin: 'pinterest', x: 'x' };
+const PERMS = {
+  ig: ['Publicar y programar posts, reels e historias', 'Ver métricas y datos de tu audiencia', 'Responder comentarios y mensajes'],
+  fb: ['Publicar y programar en tu página', 'Ver métricas de la página', 'Responder comentarios y Messenger', 'Ver resultados de tus anuncios'],
+  th: ['Publicar y programar', 'Ver métricas', 'Responder respuestas'],
+  tt: ['Publicar videos y fotos', 'Ver métricas de tus videos'],
+  yt: ['Subir y programar videos', 'Ver YouTube Analytics', 'Responder comentarios'],
+  gbp: ['Publicar novedades y ofertas', 'Responder reseñas', 'Ver vistas, llamadas y rutas'],
+  li: ['Publicar en tu página de empresa', 'Ver métricas de la página'],
+  x: ['Publicar y programar', 'Ver métricas de tus posts'],
+  pin: ['Crear pines y tableros', 'Ver métricas de tus pines']
+};
+const SCOPES = {
+  ig: 'instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_insights,instagram_manage_messages,pages_show_list,pages_read_engagement,business_management',
+  fb: 'pages_show_list,pages_manage_posts,pages_read_engagement,pages_manage_engagement,pages_messaging,read_insights,ads_read,business_management',
+  th: 'threads_basic,threads_content_publish,threads_manage_insights,threads_manage_replies',
+  yt: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/yt-analytics.readonly',
+  gbp: 'https://www.googleapis.com/auth/business.manage',
+  tt: 'user.info.basic,user.info.stats,video.list,video.publish,video.upload',
+  li: 'r_organization_social w_organization_social rw_organization_admin',
+  pin: 'boards:read,boards:write,pins:read,pins:write,user_accounts:read',
+  x: 'tweet.read tweet.write users.read offline.access'
+};
+const MANUAL = {
+  ig: { url: 'https://business.facebook.com/settings/partners', steps: (b) => ['Se abrió Meta Business Suite › Configuración del negocio › Socios.', 'Toca “Agregar” › “Dar a un socio acceso a tus activos”.', `Escribe el ID de negocio de Peek Media: ${b}.`, 'Marca tu cuenta de Instagram y tu página de Facebook con control total, y guarda.'] },
+  fb: { url: 'https://business.facebook.com/settings/partners', steps: (b) => ['Se abrió Meta Business Suite › Configuración del negocio › Socios.', 'Toca “Agregar” › “Dar a un socio acceso a tus activos”.', `Escribe el ID de negocio de Peek Media: ${b}.`, 'Marca tu página de Facebook (y la cuenta publicitaria) con control total, y guarda.'] },
+  yt: { url: 'https://studio.youtube.com/', steps: () => ['Se abrió YouTube Studio. Ve a Configuración › Permisos.', 'Toca “Invitar” y escribe equipo@peekmedia.rd.', 'Elige el rol “Administrador” y guarda.'] },
+  gbp: { url: 'https://business.google.com/', steps: () => ['Se abrió tu perfil de negocio en Google.', 'Menú ⋮ › Configuración del perfil › Personas y acceso.', 'Agrega equipo@peekmedia.rd como Administrador.'] },
+  li: { url: 'https://www.linkedin.com/', steps: () => ['Abre tu página de empresa en LinkedIn.', 'Herramientas de administrador › Administrar administradores.', 'Agrega a la persona de Peek Media como “Administrador de contenido”.'] },
+  pin: { url: 'https://www.pinterest.com/settings/', steps: () => ['Se abrió la configuración de Pinterest. Ve a “Acceso de empresa”.', 'Toca “Agregar socio” y escribe el ID de empresa de Peek Media.', 'Dale acceso a tus tableros y anuncios.'] }
+};
+const LOGIN_URL = { tt: 'https://www.tiktok.com/login', x: 'https://x.com/i/flow/login', th: 'https://www.threads.net/login' };
+const HOST = { meta: 'facebook.com', google: 'accounts.google.com', tiktok: 'tiktok.com', linkedin: 'linkedin.com', pinterest: 'pinterest.com', x: 'x.com' };
+function oauthUrl(p, apps, state) {
+  const id = apps[PROVIDER[p]], ru = encodeURIComponent(apps.redirect || ''), s = encodeURIComponent(state), sc = encodeURIComponent(SCOPES[p]);
+  if (!id) return null;
+  if (p === 'th') return `https://threads.net/oauth/authorize?client_id=${id}&redirect_uri=${ru}&scope=${sc}&response_type=code&state=${s}`;
+  switch (PROVIDER[p]) {
+    case 'meta': return `https://www.facebook.com/v21.0/dialog/oauth?client_id=${id}&redirect_uri=${ru}&scope=${sc}&response_type=code&state=${s}`;
+    case 'google': return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${id}&redirect_uri=${ru}&response_type=code&access_type=offline&prompt=consent&scope=${sc}&state=${s}`;
+    case 'tiktok': return `https://www.tiktok.com/v2/auth/authorize/?client_key=${id}&response_type=code&scope=${sc}&redirect_uri=${ru}&state=${s}`;
+    case 'linkedin': return `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${id}&redirect_uri=${ru}&scope=${sc}&state=${s}`;
+    case 'pinterest': return `https://www.pinterest.com/oauth/?client_id=${id}&redirect_uri=${ru}&response_type=code&scope=${sc}&state=${s}`;
+    case 'x': return `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${id}&redirect_uri=${ru}&scope=${sc}&state=${s}&code_challenge=${s}&code_challenge_method=plain`;
+  }
+  return null;
+}
+const PLANS = [
+  { id: 'basico', name: 'Plan Básico', from: 12000, d: { posts: 12, reels: 2, stories: 8, redes: 2, reportes: 1, reuniones: 1 }, extras: ['Diseño de posts y carruseles', 'Calendario mensual', 'Reporte mensual'] },
+  { id: 'estrategico', name: 'Plan Estratégico', from: 25000, d: { posts: 16, reels: 6, stories: 16, redes: 4, reportes: 1, reuniones: 2 }, extras: ['Estrategia de contenido', 'Gestión de comunidad', 'Campañas en Meta Ads', 'Reporte mensual'] },
+  { id: 'premium', name: 'Plan Premium', from: 45000, d: { posts: 24, reels: 10, stories: 30, redes: 6, reportes: 2, reuniones: 4 }, extras: ['Todo lo del Estratégico', 'Sesión de fotos o video mensual', 'Campañas en varias redes', 'Reunión semanal'] }
+];
+const ADDONS = ['Sesión de fotos o video', 'Identidad visual', 'Campañas en Google', 'Pack de 4 reels extra', 'Auditoría de redes', 'Página web'];
+const DLABEL = { posts: 'Publicaciones al mes', reels: 'Reels o videos al mes', stories: 'Historias al mes', redes: 'Redes gestionadas', reportes: 'Reportes al mes', reuniones: 'Reuniones al mes' };
+const rd = (n) => 'RD$ ' + Number(n || 0).toLocaleString('es-DO');
+const longDate = (s) => new Date(s.length <= 10 ? s + 'T12:00:00' : s).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' });
+function defaultContract(cl) {
+  const planId = { cafe: 'basico', clinica: 'estrategico', torre: 'estrategico' }[cl.id] || 'estrategico';
+  const P = PLANS.find((p) => p.id === planId);
+  const signed = cl.id === 'cafe' || cl.id === 'torre';
+  const start = cl.id === 'cafe' ? '2026-03-01' : cl.id === 'torre' ? '2026-01-15' : new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  const u = (SEED_USERS[cl.id] || [])[0];
+  return { number: 'PM-' + (1000 + hash(cl.id) % 9000), version: 1, planId, price: P.from + (cl.id === 'torre' ? 3000 : 0), start, months: 6, billingDay: 5, payment: 'Transferencia bancaria',
+    d: { ...P.d, redes: Math.min(P.d.redes, cl.platforms.length) }, addons: cl.id === 'torre' ? ['Sesión de fotos o video'] : [],
+    status: cl.seedClient ? (signed ? 'firmado' : 'enviado') : 'borrador', sentAt: cl.seedClient ? start : null,
+    signedAt: signed ? start + 'T10:30:00' : null, signer: signed && u ? { name: u.name, method: 'typed', typed: u.name, role: u.role, code: 'SIG-' + hash(cl.id + 's').toString(16).toUpperCase().slice(0, 10) } : null };
+}
+const APP_HELP = {
+  meta: { url: 'https://developers.facebook.com/apps', ph: 'Ej. 1234567890123456', steps: ['Entra con la cuenta de Facebook de Peek Media y toca “Crear app”.', 'Elige el tipo “Empresa” y conéctala al portafolio comercial de Peek Media.', 'Agrega los productos “Instagram”, “Facebook Login para empresas” y “Threads”.', 'Copia el “Identificador de la app” que aparece arriba y pégalo aquí.', 'Para usarla con clientes, pide la “Revisión de la app” de los permisos que se muestran en cada red.'] },
+  metaBusinessId: { url: 'https://business.facebook.com/settings/info', ph: 'Ej. 987654321012345', steps: ['Entra a Meta Business Suite con la cuenta de Peek Media.', 'Ve a Configuración del negocio › Información del negocio.', 'Copia el número “Identificador del portafolio comercial” y pégalo aquí.', 'Este es el ID que tus clientes escriben para agregarte como socio. Ya lo puedes usar hoy.'] },
+  google: { url: 'https://console.cloud.google.com/apis/credentials', ph: 'Ej. 1234-abc.apps.googleusercontent.com', steps: ['Crea un proyecto llamado “Peek Media” en Google Cloud.', 'En “Biblioteca”, activa YouTube Data API v3, YouTube Analytics API y las APIs de Google Business Profile.', 'Configura la “Pantalla de consentimiento de OAuth” con el nombre y logo de Peek Media.', 'En “Credenciales” › “Crear credenciales” › “ID de cliente de OAuth” (tipo Aplicación web). Agrega la URL de retorno.', 'Copia el “ID de cliente” y pégalo aquí. Para Google Business, además solicita acceso en su formulario.'] },
+  tiktok: { url: 'https://developers.tiktok.com/apps', ph: 'Ej. aw1b2c3d4e5f', steps: ['Entra a TikTok for Developers y toca “Connect an app” o “Create app”.', 'Agrega los productos “Login Kit” y “Content Posting API”.', 'Registra la URL de retorno y verifica tu dominio.', 'Copia el “Client key” y pégalo aquí.', 'Pide la auditoría de Direct Post con un video demo; sin ella, lo publicado queda privado.'] },
+  linkedin: { url: 'https://www.linkedin.com/developers/apps', ph: 'Ej. 78abcd1234efgh', steps: ['Toca “Create app” y asóciala a la página de empresa de Peek Media.', 'En “Products”, solicita “Community Management API”.', 'En “Auth”, agrega la URL de retorno.', 'Copia el “Client ID” y pégalo aquí. Publicar en páginas de clientes requiere que LinkedIn apruebe la solicitud.'] },
+  pinterest: { url: 'https://developers.pinterest.com/apps/', ph: 'Ej. 1512345', steps: ['Entra con una cuenta de empresa de Pinterest y toca “Connect app”.', 'Completa los datos de Peek Media y solicita “Acceso estándar”.', 'Agrega la URL de retorno en la configuración de la app.', 'Copia el “App ID” y pégalo aquí.'] },
+  x: { url: 'https://developer.x.com/en/portal/dashboard', ph: 'Ej. aBcD1234EfGh5678', steps: ['Crea una cuenta de desarrollador y un proyecto con una app.', 'En “User authentication settings”, activa OAuth 2.0 con permisos de lectura y escritura.', 'Agrega la URL de retorno y la web de Peek Media.', 'Copia el “Client ID” (OAuth 2.0) y pégalo aquí. Recuerda: X cobra por uso.'] },
+  redirect: { url: 'https://vercel.com/', ph: 'https://tudominio.com/oauth/callback', steps: ['Es la dirección de tu sistema adonde cada red devuelve al cliente después de aceptar.', 'Necesitas un dominio y el sistema publicado (por ejemplo en Vercel).', 'Escríbela exactamente igual aquí y en la configuración de cada app de arriba.', 'Hasta tenerla, deja los demás campos vacíos: “Conectar” seguirá usando el acceso como socio.'] }
+};
+const newCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 8; i++) s += A[Math.floor(Math.random() * A.length)]; return s.slice(0, 4) + '-' + s.slice(4); };
+
+class Component extends DCLogic {
+  state = { cid: 'cafe', role: 'cm', view: 'resumen', chartPlat: 'total', calOffset: 0, openPost: null, inboxFilter: 'todos', msgId: null, replyText: '', noteText: '',
+    comp: null, compMsg: '', registry: null, wsCache: {}, session: null, ready: false,
+    apps: null, guide: null, cEdit: null, ctMsg: '', sigName: '', sigMode: 'type', sigHas: false, sigAccept: false, sigErr: '', lTab: 'team', lEmail: '', lSecret: '', lErr: '', mgId: null, mgDraft: null, mgMsg: '', nu: { name: '', email: '', role: 'Administrador' } };
+
+  componentDidMount() {
+    let reg = null, ses = null;
+    try { reg = JSON.parse(localStorage.getItem(REG_KEY) || 'null'); } catch (e) {}
+    try { ses = JSON.parse(sessionStorage.getItem('pm-dash-session') || 'null'); } catch (e) {}
+    const registry = reg || CLIENTS.map((c) => ({ ...c, users: SEED_USERS[c.id] || [], seedClient: true }));
+    let apps = null;
+    try { apps = JSON.parse(localStorage.getItem('pm-dash-apps') || 'null'); } catch (e) {}
+    const patch = { registry, ready: true, session: ses, apps: apps || { meta: '', google: '', tiktok: '', linkedin: '', pinterest: '', x: '', redirect: 'https://[tu-dominio]/oauth/callback', metaBusinessId: '[ID de negocio de Peek Media]' } };
+    if (ses && ses.type === 'client') Object.assign(patch, { cid: ses.cid, role: 'cliente' });
+    this.setState(patch);
+  }
+  getWs(cid) {
+    const c = this.state.wsCache[cid];
+    if (c) return c;
+    let s = null;
+    try { s = JSON.parse(localStorage.getItem('pm-ws-' + cid) || 'null'); } catch (e) {}
+    return Object.assign({ user: {}, status: {}, feedback: {}, replies: {}, notes: {} }, s || {});
+  }
+  persist(fn) {
+    const cid = this.state.cid;
+    const n = JSON.parse(JSON.stringify(this.getWs(cid)));
+    fn(n);
+    localStorage.setItem('pm-ws-' + cid, JSON.stringify(n));
+    this.setState((s) => ({ wsCache: { ...s.wsCache, [cid]: n } }));
+  }
+  saveRegistry(list) { localStorage.setItem(REG_KEY, JSON.stringify(list)); this.setState({ registry: list }); }
+  startSession(ses, patch) { sessionStorage.setItem('pm-dash-session', JSON.stringify(ses)); this.setState({ session: ses, lErr: '', lSecret: '', view: 'resumen', ...patch }); }
+  logout = () => { sessionStorage.removeItem('pm-dash-session'); this.setState({ session: null, role: 'cm', view: 'resumen', openPost: null }); };
+  doLogin = () => {
+    const st = this.state, email = st.lEmail.trim().toLowerCase(), sec = st.lSecret.trim();
+    if (st.lTab === 'team') {
+      if (email === TEAM.email && sec === TEAM.pass) return this.startSession({ type: 'team', name: TEAM.name }, { role: 'cm' });
+      return this.setState({ lErr: 'Correo o contraseña incorrectos.' });
+    }
+    for (const c of st.registry || []) {
+      const u = (c.users || []).find((x) => x.email.toLowerCase() === email && x.code.toUpperCase() === sec.toUpperCase());
+      if (u) {
+        if (!u.active) return this.setState({ lErr: 'Este acceso fue desactivado. Habla con tu agencia.' });
+        return this.startSession({ type: 'client', cid: c.id, uid: u.id, name: u.name, userRole: u.role }, { cid: c.id, role: 'cliente' });
+      }
+    }
+    this.setState({ lErr: 'No encontramos un acceso con ese correo y código.' });
+  };
+  today() { const t = new Date(); t.setHours(0, 0, 0, 0); return t; }
+
+  seed(cl) {
+    this.cache = this.cache || {};
+    if (this.cache[cl.id]) return this.cache[cl.id];
+    const r = mulberry32(hash(cl.id + 'peek'));
+    const pick = (a) => a[Math.floor(r() * a.length)];
+    const T = this.today();
+    const series = {};
+    Object.keys(cl.base).forEach((p) => {
+      const b = cl.base[p]; let v = b * 0.9; const arr = [];
+      for (let i = 0; i < 90; i++) { v += b * (0.0012 + (r() - 0.35) * 0.004); if (r() < 0.04) v += b * 0.012; arr.push(Math.round(v)); }
+      series[p] = arr;
+    });
+    const posts = []; let d = -28, n = 0;
+    while (d <= 24) {
+      const dt = new Date(T); dt.setDate(dt.getDate() + d); dt.setHours(pick([9, 11, 13, 18, 20]), pick([0, 30]));
+      let plats = cl.platforms.filter((p) => (p === 'gbp' ? r() < 0.3 : r() < 0.7));
+      if (!plats.length) plats = [cl.platforms[0]];
+      const type = pick(cl.types);
+      const status = d < 0 ? 'publicado' : d < 3 ? 'programado' : pick(['programado', 'pendiente', 'pendiente', 'borrador']);
+      const reach = Math.round((cl.base.ig || 2000) * (0.3 + r() * 1.4) * (type === 'Reel' || type === 'Short' ? 1.8 : 1));
+      posts.push({ id: cl.id + '-' + n, date: dt.toISOString(), plats, type, caption: cl.captions[n % cl.captions.length], status, tone: n % 4, seed: true,
+        metrics: status === 'publicado' ? { reach, likes: Math.round(reach * (0.03 + r() * 0.05)), comments: Math.round(reach * (0.002 + r() * 0.006)), shares: Math.round(reach * (0.001 + r() * 0.01)), saves: Math.round(reach * (0.002 + r() * 0.012)) } : null });
+      d += 1 + Math.floor(r() * 3); n++;
+    }
+    const inbox = [];
+    for (let i = 0; i < 10; i++) {
+      const kind = cl.platforms.includes('gbp') && i % 5 === 4 ? 'resena' : i % 3 === 1 ? 'mensaje' : 'comentario';
+      const plat = kind === 'resena' ? 'gbp' : kind === 'mensaje' ? pick(['ig', 'fb']) : pick(cl.platforms.filter((p) => p !== 'gbp'));
+      const pub = posts.filter((p) => p.status === 'publicado');
+      inbox.push({ id: cl.id + '-m' + i, kind, plat, author: pick(NAMES), text: pick(TXT[kind]), mins: Math.round(8 + i * (60 + r() * 300)), stars: kind === 'resena' ? 3 + Math.floor(r() * 3) : 0,
+        post: kind === 'comentario' && pub.length ? pick(pub).caption : '' });
+    }
+    const heat = Array.from({ length: 7 }, (_, di) => Array.from({ length: 9 }, (_, hi) => Math.min(1, 0.15 + r() * 0.35 + (hi >= 5 && hi <= 7 ? 0.35 : 0) + (di === 0 || di === 6 ? (hi >= 2 && hi <= 4 ? 0.2 : 0) : 0))));
+    const ageRaw = [0.5 + r(), 1.4 + r(), 1.1 + r(), 0.6 + r() * 0.6, 0.3 + r() * 0.4];
+    const cityRaw = [2.4 + r(), 0.8 + r() * 0.6, 0.3 + r() * 0.5, 0.2 + r() * 0.4, 0.2 + r() * 0.3];
+    const extra = { reachMult: 1.6 + r() * 1.8, clicks: Math.round(120 + r() * 600), gbp: { views: Math.round(1800 + r() * 4000), calls: Math.round(40 + r() * 160), dirs: Math.round(60 + r() * 220) }, yt: { views: Math.round(3000 + r() * 12000), hours: Math.round(120 + r() * 600) } };
+    this.cache[cl.id] = { series, posts, inbox, heat, ageRaw, cityRaw, extra };
+    return this.cache[cl.id];
+  }
+
+  defaultComp(cl, date) {
+    const d = date ? new Date(date) : new Date(Date.now() + 86400000);
+    d.setHours(10, 0, 0, 0);
+    const pad = (x) => String(x).padStart(2, '0');
+    return { plats: { [cl.platforms[0]]: true }, type: cl.types[0], caption: '', when: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T10:00`, media: null, mediaName: '', mediaIsVideo: false };
+  }
+
+  renderVals() {
+    const st = this.state;
+    if (!st.ready) return { needLogin: false, authed: false };
+    const registry = st.registry || [];
+    const ses = st.session;
+    const demos = [{ label: 'Equipo Peek', cred: TEAM.email + ' · ' + TEAM.pass, tab: 'team', email: TEAM.email, secret: TEAM.pass },
+      ...registry.flatMap((c) => (c.users || []).filter((u) => u.active).slice(0, 1).map((u) => ({ label: c.name, cred: u.email + ' · ' + u.code, tab: 'client', email: u.email, secret: u.code })))].slice(0, 4);
+    const login = {
+      tabs: [['team', 'Equipo Peek'], ['client', 'Soy cliente']].map(([id, label]) => ({ label, bg: st.lTab === id ? '#0B1F33' : 'transparent', fg: st.lTab === id ? '#FFFFFF' : '#0B1F33', onClick: () => this.setState({ lTab: id, lErr: '' }) })),
+      email: st.lEmail, secret: st.lSecret, err: st.lErr,
+      secretLabel: st.lTab === 'team' ? 'Contraseña' : 'Código de acceso', secretPh: st.lTab === 'team' ? '••••••••' : 'XXXX-XXXX',
+      onEmail: (e) => this.setState({ lEmail: e.target.value, lErr: '' }), onSecret: (e) => this.setState({ lSecret: e.target.value, lErr: '' }),
+      onKey: (e) => { if (e.key === 'Enter') this.doLogin(); }, submit: this.doLogin,
+      demos: demos.map((d) => ({ label: d.label, cred: d.cred, onClick: () => this.setState({ lTab: d.tab, lEmail: d.email, lSecret: d.secret, lErr: '' }) }))
+    };
+    if (!ses) return { needLogin: true, authed: false, login };
+    const isTeam = ses.type === 'team';
+    const cid = isTeam ? st.cid : ses.cid;
+    const cl = registry.find((c) => c.id === cid) || registry[0];
+    if (!cl) return { needLogin: false, authed: true, login };
+    const store = this.getWs(cl.id);
+    const S = this.seed(cl);
+    const T = this.today();
+    const isCM = isTeam && st.role === 'cm';
+    const canApproveRole = isTeam || ses.userRole !== 'Solo lectura';
+    const comp = st.comp || this.defaultComp(cl);
+    const setComp = (patch) => this.setState((s) => ({ comp: { ...(s.comp || this.defaultComp(cl)), ...patch }, compMsg: '' }));
+
+    const posts = [...S.posts, ...(store.user[cl.id] || [])].map((p) => ({ ...p, status: store.status[p.id] || p.status, feedback: store.feedback[p.id] || '' }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    const dateLabel = (iso) => { const d = new Date(iso); return `${DOW[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)} · ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+    const platLabel = (arr) => arr.map((p) => PLAT[p].name).join(', ');
+    const open = (id) => () => this.setState({ openPost: id });
+    const deco = (p) => {
+      const s = ST[p.status] || ST.borrador, [tb, tf] = TONES[p.tone % 4];
+      return { ...p, stLabel: s.label, stBg: s.bg, stFg: s.fg, toneBg: tb, toneFg: tf, dateLabel: dateLabel(p.date), platLabel: platLabel(p.plats), onClick: open(p.id) };
+    };
+    const setStatus = (id, status, feedback) => this.persist((n) => { n.status[id] = status; if (feedback != null) n.feedback[id] = feedback; });
+    const askChanges = (id) => { const t = window.prompt('¿Qué cambios necesitas?'); if (t) setStatus(id, 'cambios', t); };
+
+    const pending = posts.filter((p) => p.status === 'pendiente' || p.status === 'cambios');
+    const inboxAll = S.inbox.map((m) => ({ ...m, reply: store.replies[m.id] || '' }));
+    const unanswered = inboxAll.filter((m) => !m.reply).length;
+
+    const navDefs = [['resumen', 'Resumen', true], ['calendario', 'Calendario', true], ['crear', 'Crear publicación', isCM], ['bandeja', 'Bandeja', isCM, unanswered],
+      ['aprobaciones', 'Aprobaciones', true, pending.filter((p) => p.status === 'pendiente').length], ['reportes', 'Reportes', true], ['novedades', 'Novedades', true], ['conexiones', 'Conexiones y API', isCM], ['clientes', 'Gestión de clientes', isCM]];
+    const isAdminRole = isTeam || ses.userRole === 'Administrador';
+    const conn = store.conn || (cl.seedClient ? Object.fromEntries(cl.platforms.slice(0, 2).map((p) => [p, { status: 'conectado', account: '@' + cl.handle }])) : {});
+    const pendingConn = cl.platforms.filter((p) => !conn[p] || conn[p].status !== 'conectado').length;
+    navDefs.splice(7, 0, ['conectar', 'Conectar cuentas', isTeam || isAdminRole, pendingConn]);
+    const contract = store.contract || defaultContract(cl);
+    navDefs.splice(1, 0, ['plan', isTeam ? 'Plan y contrato' : 'Mi plan y contrato', true, contract.status === 'enviado' && !isTeam ? 1 : 0]);
+    const view = navDefs.find((n) => n[0] === st.view && n[2]) ? st.view : 'resumen';
+    const nav = navDefs.filter((n) => n[2]).map(([id, label, , badge]) => ({ label, badge: String(badge || ''), hasBadge: !!badge, bg: view === id ? '#0B1F33' : 'transparent', fg: view === id ? '#FFFFFF' : '#0B1F33', onClick: () => this.setState({ view: id, openPost: null }) }));
+    const v = {}; navDefs.forEach((n) => { v[n[0]] = view === n[0]; });
+
+    const clientTabs = registry.map((c) => ({ name: c.name, industry: c.industry, initials: c.name.split(' ').map((w) => w[0]).slice(0, 2).join(''), avatarBg: c.avatarBg,
+      bg: c.id === cl.id ? '#BEBEBE' : '#FFFFFF', border: c.id === cl.id ? '#0B1F33' : 'rgba(11,31,51,0.08)',
+      onClick: () => this.setState((s) => ({ cid: c.id, chartPlat: 'total', msgId: null, comp: null, openPost: null, view: s.view === 'clientes' ? 'resumen' : s.view })) }));
+    const roles = [['cm', 'Community manager'], ['cliente', 'Cliente']].map(([id, label]) => ({ label, bg: st.role === id ? '#0B1F33' : 'transparent', fg: st.role === id ? '#FFFFFF' : '#0B1F33', onClick: () => this.setState({ role: id }) }));
+
+    // KPIs
+    const sp = Object.keys(S.series);
+    const total = (i) => sp.reduce((a, p) => a + S.series[p][i], 0);
+    const fNow = total(89), f30 = total(59);
+    const pub30 = posts.filter((p) => p.status === 'publicado' && new Date(p.date) >= new Date(T.getTime() - 30 * 86400000));
+    const inter = pub30.reduce((a, p) => a + (p.metrics ? p.metrics.likes + p.metrics.comments + p.metrics.shares + p.metrics.saves : 0), 0);
+    const reach = Math.round(fNow * S.extra.reachMult);
+    const eng = reach ? inter / reach * 100 : 0;
+    const pct = (a, b) => (b ? ((a - b) / b * 100) : 0);
+    const dPill = (x, suffix) => ({ delta: (x >= 0 ? '+' : '') + x.toFixed(1) + (suffix || '%') + ' vs. mes anterior', deltaBg: x >= 0 ? 'rgba(33,196,214,0.2)' : '#FFE1E2' });
+    const r2 = mulberry32(hash(cl.id + 'k'));
+    const kpis = [
+      { label: 'Seguidores totales', value: compact(fNow), ...dPill(pct(fNow, f30)) },
+      { label: 'Alcance', value: compact(reach), ...dPill(-4 + r2() * 22) },
+      { label: 'Interacción', value: eng.toFixed(1) + '%', ...dPill(-0.8 + r2() * 1.6, ' pts') },
+      { label: 'Publicaciones', value: String(pub30.length), delta: `${posts.filter((p) => p.status === 'programado').length} programadas`, deltaBg: '#BEBEBE' }
+    ];
+    if (cl.platforms.includes('gbp')) kpis.push({ label: 'Vistas en Google', value: compact(S.extra.gbp.views), delta: `${S.extra.gbp.calls} llamadas · ${S.extra.gbp.dirs} rutas`, deltaBg: '#BEBEBE' });
+    if (cl.platforms.includes('yt')) kpis.push({ label: 'Vistas en YouTube', value: compact(S.extra.yt.views), delta: `${fmt(S.extra.yt.hours)} h reproducidas`, deltaBg: '#BEBEBE' });
+
+    const serie = st.chartPlat === 'total' || !S.series[st.chartPlat] ? Array.from({ length: 90 }, (_, i) => total(i)) : S.series[st.chartPlat];
+    const mn = Math.min(...serie), mx = Math.max(...serie), rng = mx - mn || 1;
+    const pts = serie.map((val, i) => `${(i / 89 * 600).toFixed(1)},${(190 - (val - mn) / rng * 170).toFixed(1)}`);
+    const line = 'M' + pts.join(' L');
+    const labels = [89, 67, 45, 22, 0].map((back) => { const d = new Date(T); d.setDate(d.getDate() - back); return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`; });
+    const chart = { line, area: line + ' L600,200 L0,200 Z', labels, max: compact(mx), mid: compact((mx + mn) / 2), min: compact(mn),
+      caption: `${(serie[89] - serie[0] >= 0 ? '+' : '')}${fmt(serie[89] - serie[0])} seguidores en 90 días` };
+    const chartTabs = [['total', 'Total'], ...sp.map((p) => [p, PLAT[p].name])].map(([id, label]) => ({ label, bg: st.chartPlat === id ? '#0B1F33' : '#BEBEBE', fg: st.chartPlat === id ? '#FFFFFF' : '#0B1F33', onClick: () => this.setState({ chartPlat: id }) }));
+    const platCards = sp.map((p) => {
+      const s = S.series[p], last = s.slice(-30), a = Math.min(...last), b = Math.max(...last) - a || 1;
+      return { name: PLAT[p].name, color: PLAT[p].color, value: compact(s[89]), delta: `${s[89] - s[59] >= 0 ? '+' : ''}${fmt(s[89] - s[59])} en 30 días`,
+        spark: 'M' + last.map((x, i) => `${(i / 29 * 120).toFixed(1)},${(34 - (x - a) / b * 32).toFixed(1)}`).join(' L') };
+    });
+    const topPosts = [...pub30].sort((a, b) => b.metrics.reach - a.metrics.reach).slice(0, 4).map((p) => ({ ...deco(p), reach: compact(p.metrics.reach) }));
+    const upcoming = posts.filter((p) => new Date(p.date) >= T && p.status !== 'publicado').slice(0, 4).map((p) => { const d = new Date(p.date); return { ...deco(p), dow: DOW[d.getDay()], day: d.getDate(), time: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} · ${p.plats.map((x) => PLAT[x].short).join(' ')}` }; });
+
+    // Novedades
+    const best = topPosts[0];
+    const igS = S.series.ig;
+    const milestone = igS ? Math.floor(igS[89] / 500) * 500 : 0;
+    const agoLabel = (mins) => mins < 60 ? `hace ${mins} min` : mins < 1440 ? `hace ${Math.round(mins / 60)} h` : `hace ${Math.round(mins / 1440)} d`;
+    const notes = (store.notes[cl.id] || []).map((nt) => ({ icon: 'CM', iconBg: '#0B1F33', iconFg: '#FFFFFF', text: nt.text, when: 'Nota de tu CM · ' + new Date(nt.date).toLocaleDateString('es-DO', { day: 'numeric', month: 'long' }) }));
+    const news = [
+      ...notes.reverse(),
+      pendingConn ? { icon: '⚯', iconBg: '#FFE1E2', iconFg: '#0B1F33', text: `Faltan ${pendingConn} redes por conectar. Conéctalas en “Conectar cuentas” para ver todas tus métricas.`, when: 'Pendiente' } : null,
+      milestone && igS[59] < milestone ? { icon: '↑', iconBg: 'rgba(33,196,214,0.25)', iconFg: '#0B1F33', text: `Superaste ${fmt(milestone)} seguidores en Instagram.`, when: 'Este mes' } : null,
+      best ? { icon: '★', iconBg: '#FFE1E2', iconFg: '#0B1F33', text: `“${best.caption}” es tu mejor publicación del mes, con ${best.reach} de alcance.`, when: best.dateLabel } : null,
+      pending.length ? { icon: '!', iconBg: '#FF5A5F', iconFg: '#0B1F33', text: `${pending.length} publicaciones esperan revisión.`, when: 'Pendiente' } : null,
+      ...inboxAll.filter((m) => m.kind === 'resena').slice(0, 1).map((m) => ({ icon: 'G', iconBg: '#BEBEBE', iconFg: '#0B1F33', text: `Nueva reseña de ${m.stars}★ en Google de ${m.author}: “${m.text}”`, when: agoLabel(m.mins) })),
+      { icon: '◷', iconBg: '#BEBEBE', iconFg: '#0B1F33', text: 'Tu audiencia está más activa entre 6:00 p. m. y 10:00 p. m.', when: 'Últimos 30 días' },
+      unanswered ? { icon: '✉', iconBg: '#BEBEBE', iconFg: '#0B1F33', text: `${unanswered} comentarios y mensajes sin responder.`, when: 'Bandeja' } : null
+    ].filter(Boolean);
+    const newsShort = news.slice(0, 3).map((n) => ({ text: n.text, dot: n.iconBg === '#FF5A5F' ? '#FF5A5F' : '#21C4D6' }));
+
+    // Calendar
+    const base = new Date(T.getFullYear(), T.getMonth() + st.calOffset, 1);
+    const start = new Date(base); start.setDate(1 - ((base.getDay() + 6) % 7));
+    const days = [];
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      if (i >= 35 && d.getMonth() !== base.getMonth()) break;
+      const key = d.toDateString();
+      const dp = posts.filter((p) => new Date(p.date).toDateString() === key).map((p) => { const x = deco(p); const dd = new Date(p.date); return { ...x, time: `${String(dd.getHours()).padStart(2, '0')}:${String(dd.getMinutes()).padStart(2, '0')}`, platShort: p.plats.map((q) => PLAT[q].short).join(' ') }; });
+      const isToday = key === T.toDateString();
+      days.push({ num: d.getDate(), posts: dp, bg: isToday ? '#FFFFFF' : d.getMonth() === base.getMonth() ? '#FFFFFF' : '#BEBEBE', border: isToday ? '#FF5A5F' : 'rgba(11,31,51,0.08)', op: d.getMonth() === base.getMonth() ? 1 : 0.55,
+        canAdd: isCM && d >= T, onAdd: () => this.setState({ view: 'crear', comp: this.defaultComp(cl, d), compMsg: '' }) });
+    }
+    const cal = { title: `${MONTHS[base.getMonth()]} ${base.getFullYear()}`, dows: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], days,
+      prev: () => this.setState((s) => ({ calOffset: s.calOffset - 1 })), next: () => this.setState((s) => ({ calOffset: s.calOffset + 1 })) };
+    const legend = Object.values(ST).map((s) => ({ label: s.label, bg: s.bg, fg: s.fg }));
+
+    // Composer
+    const selPlats = cl.platforms.filter((p) => comp.plats[p]);
+    const capById = Object.fromEntries(CAPS.map((c) => [c.id, c]));
+    const noteMap = { tt: 'Sin auditoría de TikTok la publicación queda privada. Alternativa: enviarla como borrador a la app.', gbp: 'Google solo acepta novedades, ofertas o eventos; nada de reels ni historias.', li: 'Requiere aprobación de LinkedIn como partner.', yt: 'YouTube necesita un video. Si es vertical y corto, sale como Short.', x: 'X cobra por cada publicación hecha por la API.', pin: 'Pinterest necesita imagen o video y un tablero de destino.', th: 'Threads: máximo 500 caracteres.' };
+    const typeNote = comp.type === 'Historia' && selPlats.some((p) => p !== 'ig' && p !== 'fb') ? [{ plat: 'Historia', text: 'Las historias solo existen en Instagram y Facebook.', bg: '#FFE1E2' }] : [];
+    const compNotes = [...typeNote, ...selPlats.filter((p) => noteMap[p]).map((p) => ({ plat: PLAT[p].name, text: noteMap[p], bg: '#BEBEBE' }))];
+    const bestHour = (() => { let b = [0, 0, 0]; S.heat.forEach((row, di) => row.forEach((val, hi) => { if (val > b[0]) b = [val, di, hi]; })); return `${['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][b[1]]} a las ${6 + b[2] * 2}:00`; })();
+    const savePost = (status) => {
+      if (!selPlats.length) return this.setState({ compMsg: 'Elige al menos una red.' });
+      if (!comp.caption.trim() && !comp.media) return this.setState({ compMsg: 'Agrega texto o un archivo.' });
+      const over = selPlats.find((p) => comp.caption.length > PLAT[p].limit);
+      if (over) return this.setState({ compMsg: `El texto pasa el límite de ${PLAT[over].name}.` });
+      const id = cl.id + '-u' + Date.now();
+      const p = { id, date: new Date(comp.when).toISOString(), plats: selPlats, type: comp.type, caption: comp.caption || '(Sin texto)', status, tone: Math.floor(Math.random() * 4), metrics: null, seed: false };
+      this.persist((n) => { n.user[cl.id] = [...(n.user[cl.id] || []), p]; });
+      const msgs = { borrador: 'Borrador guardado.', pendiente: 'Enviado al cliente para aprobación.', programado: `Programado para ${dateLabel(p.date)}.` };
+      this.setState({ comp: this.defaultComp(cl), compMsg: msgs[status] });
+    };
+    const ratio = comp.type === 'Reel' || comp.type === 'Historia' || comp.type === 'Short' ? '9 / 16' : comp.type === 'Video' ? '16 / 9' : '1 / 1';
+    const compV = {
+      plats: cl.platforms.map((p) => { const on = !!comp.plats[p]; return { name: PLAT[p].name, color: PLAT[p].color, bg: on ? '#0B1F33' : '#FFFFFF', fg: on ? '#FFFFFF' : '#0B1F33', border: on ? '#0B1F33' : 'rgba(11,31,51,0.15)', onClick: () => setComp({ plats: { ...comp.plats, [p]: !on } }) }; }),
+      types: cl.types.map((t) => ({ label: t, bg: comp.type === t ? '#21C4D6' : '#BEBEBE', fg: '#0B1F33', onClick: () => setComp({ type: t }) })),
+      caption: comp.caption, onCaption: (e) => setComp({ caption: e.target.value }),
+      counters: selPlats.map((p) => { const over = comp.caption.length > PLAT[p].limit; return { label: `${PLAT[p].short} ${fmt(comp.caption.length)}/${fmt(PLAT[p].limit)}`, bg: over ? '#FF5A5F' : '#BEBEBE', fg: over ? '#FFFFFF' : '#0B1F33' }; }),
+      mediaLabel: comp.mediaName || 'Subir imagen o video',
+      onMedia: (e) => { const f = e.target.files && e.target.files[0]; if (!f) return; setComp({ media: URL.createObjectURL(f), mediaName: f.name, mediaIsVideo: f.type.startsWith('video') }); },
+      when: comp.when, onWhen: (e) => setComp({ when: e.target.value }),
+      bestTime: `Mejor momento según tu audiencia: ${bestHour}.`,
+      notes: compNotes, msg: st.compMsg,
+      onDraft: () => savePost('borrador'), onApproval: () => savePost('pendiente'), onSchedule: () => savePost('programado'),
+      ratio, previewBg: comp.media && !comp.mediaIsVideo ? `#123553 center/cover no-repeat url("${comp.media}")` : '#123553',
+      previewLabel: comp.media && !comp.mediaIsVideo ? '' : comp.media ? '▶ ' + comp.mediaName : comp.type,
+      previewCaption: comp.caption || 'Tu texto aparecerá aquí.'
+    };
+
+    // Inbox
+    const kindLabel = { comentario: 'Comentario', mensaje: 'Mensaje directo', resena: 'Reseña' };
+    const flt = st.inboxFilter;
+    const inboxList = inboxAll.filter((m) => flt === 'todos' || (flt === 'pendientes' ? !m.reply : m.kind === flt));
+    const inbox = inboxList.map((m) => ({ ...m, initials: m.author.split(' ').map((w) => w[0]).join(''), ago: agoLabel(m.mins), platName: PLAT[m.plat].name, color: PLAT[m.plat].color, kindLabel: kindLabel[m.kind], replied: !!m.reply,
+      bg: m.id === st.msgId ? '#BEBEBE' : '#FFFFFF', onClick: () => this.setState({ msgId: m.id, replyText: '' }) }));
+    const inboxFilters = [['todos', 'Todos'], ['pendientes', `Sin responder (${unanswered})`], ['comentario', 'Comentarios'], ['mensaje', 'Mensajes'], ['resena', 'Reseñas']]
+      .filter(([id]) => id !== 'resena' || cl.platforms.includes('gbp'))
+      .map(([id, label]) => ({ label, bg: flt === id ? '#0B1F33' : '#FFFFFF', fg: flt === id ? '#FFFFFF' : '#0B1F33', onClick: () => this.setState({ inboxFilter: id }) }));
+    const m = inboxAll.find((x) => x.id === st.msgId);
+    const msg = m ? { has: true, none: false, author: m.author, platName: PLAT[m.plat].name, kindLabel: kindLabel[m.kind], ago: agoLabel(m.mins), text: m.text, replied: !!m.reply, reply: m.reply,
+      hasStars: m.stars > 0, stars: '★'.repeat(m.stars) + '☆'.repeat(5 - m.stars), hasPost: !!m.post, post: m.post,
+      windowNote: m.kind === 'mensaje' ? (m.mins < 1440 ? 'Dentro de la ventana de 24 h: puedes responder por la API.' : 'Pasaron más de 24 h: Meta no permite responder por la API sin una etiqueta de mensaje. Responde desde la app.') : '' } : { has: false, none: true };
+    const quickReplies = ['¡Gracias por escribirnos!', 'Te escribimos por mensaje directo.', 'Escríbenos al WhatsApp y te ayudamos.'].map((q) => ({ label: q, onClick: () => this.setState({ replyText: q }) }));
+    const sendReply = () => { if (!m || !st.replyText.trim()) return; const t = st.replyText.trim(); this.persist((n) => { n.replies[m.id] = t; }); this.setState({ replyText: '' }); };
+
+    // Approvals
+    const approvals = pending.map((p) => ({ ...deco(p), hasFeedback: !!p.feedback, onApprove: () => setStatus(p.id, 'programado', ''), onChanges: () => askChanges(p.id) }));
+
+    // Reports
+    const reportHead = ['Red', 'Seguidores', 'Crecimiento', 'Alcance', 'Interacciones', 'Posts'];
+    const reportCells = [];
+    cl.platforms.forEach((p) => {
+      const s = S.series[p];
+      const pp = pub30.filter((x) => x.plats.includes(p));
+      const it = pp.reduce((a, x) => a + x.metrics.likes + x.metrics.comments + x.metrics.shares + x.metrics.saves, 0);
+      const rc = pp.reduce((a, x) => a + x.metrics.reach, 0);
+      reportCells.push({ text: PLAT[p].name, w: 700, hasDot: true, dot: PLAT[p].color },
+        { text: s ? compact(s[89]) : '—', w: 400 }, { text: s ? `${pct(s[89], s[59]) >= 0 ? '+' : ''}${pct(s[89], s[59]).toFixed(1)}%` : '—', w: 400 },
+        { text: p === 'gbp' ? compact(S.extra.gbp.views) + ' vistas' : compact(rc), w: 400 }, { text: p === 'gbp' ? S.extra.gbp.calls + ' llamadas' : compact(it), w: 400 }, { text: String(pp.length), w: 400 });
+    });
+    const norm = (arr) => { const t = arr.reduce((a, b) => a + b, 0); return arr.map((x) => Math.round(x / t * 100) + '%'); };
+    const ages = norm(S.ageRaw).map((pc, i) => ({ label: ['18–24', '25–34', '35–44', '45–54', '55+'][i], pct: pc }));
+    const cities = norm(S.cityRaw).map((pc, i) => ({ label: ['Santo Domingo', 'Santiago', 'Punta Cana', 'La Romana', 'San Pedro'][i], pct: pc }));
+    const heatHours = ['6a', '8a', '10a', '12p', '2p', '4p', '6p', '8p', '10p'];
+    const heatCells = [];
+    ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].forEach((dn, di) => {
+      heatCells.push({ label: dn, bg: 'transparent' });
+      S.heat[di].forEach((val) => heatCells.push({ label: '', bg: `rgba(18,53,83,${(0.08 + val * 0.85).toFixed(2)})` }));
+    });
+
+    // Connections
+    const caps = CAPS.map((c) => { const on = conn[c.id] && conn[c.id].status === 'conectado'; return { ...c, name: PLAT[c.id].name, color: PLAT[c.id].color, status: on ? 'Conectado' : cl.platforms.includes(c.id) ? 'Por conectar' : 'No la manejamos', stBg: on ? 'rgba(33,196,214,0.25)' : '#BEBEBE', stFg: '#0B1F33' }; });
+
+    // Modal
+    const op = posts.find((p) => p.id === st.openPost);
+    const close = () => this.setState({ openPost: null });
+    const modal = op ? { open: true, ...deco(op), close,
+      hasMetrics: !!op.metrics, metrics: op.metrics ? [['Alcance', op.metrics.reach], ['Me gusta', op.metrics.likes], ['Comentarios', op.metrics.comments], ['Compartidos', op.metrics.shares], ['Guardados', op.metrics.saves]].map(([label, val]) => ({ label, value: compact(val) })) : [],
+      hasFeedback: !!op.feedback, feedback: op.feedback,
+      canApprove: canApproveRole && (op.status === 'pendiente' || op.status === 'cambios'),
+      onApprove: () => { setStatus(op.id, 'programado', ''); close(); }, onChanges: () => askChanges(op.id),
+      canDelete: isCM && !op.seed, onDelete: () => { this.persist((n) => { n.user[cl.id] = (n.user[cl.id] || []).filter((x) => x.id !== op.id); }); close(); } } : { open: false };
+
+    const viewLabels = { resumen: 'Resumen', calendario: 'Calendario de contenido', crear: 'Crear publicación', bandeja: 'Bandeja unificada', aprobaciones: 'Aprobaciones', reportes: 'Reportes', novedades: 'Novedades', conexiones: 'Conexiones y API', clientes: 'Gestión de clientes', conectar: 'Conectar cuentas', plan: isTeam ? 'Plan y contrato' : 'Mi plan y contrato' };
+
+    // Plan y contrato
+    const ctr = contract;
+    const Pn = (id) => PLANS.find((p) => p.id === id) || PLANS[1];
+    const plan = Pn(ctr.planId);
+    const requests = store.requests || (cl.id === 'torre' && cl.seedClient ? [{ id: 'rq-seed', type: 'plan', target: 'premium', status: 'pendiente', by: 'Gerencia comercial', date: '2026-09-10' }] : []);
+    const history = store.history || [];
+    const saveCt = (fn, msg) => { this.persist((n) => { n.contract = n.contract || JSON.parse(JSON.stringify(ctr)); n.requests = n.requests || JSON.parse(JSON.stringify(requests)); n.history = n.history || []; fn(n); }); this.setState({ ctMsg: msg || '' }); };
+    const endDate = (() => { const d = new Date(ctr.start + 'T12:00:00'); d.setMonth(d.getMonth() + Number(ctr.months || 0)); return d; })();
+    const nextPay = (() => { const d = new Date(T); d.setDate(Number(ctr.billingDay) || 5); if (d <= T) d.setMonth(d.getMonth() + 1); return d; })();
+    const STC = { borrador: ['Borrador', '#BEBEBE'], enviado: ['Pendiente de firma', '#FFE1E2'], firmado: ['Firmado · Vigente', '#21C4D6'] };
+    const mStart = new Date(T.getFullYear(), T.getMonth(), 1), mEnd = new Date(T.getFullYear(), T.getMonth() + 1, 1);
+    const inMonth = posts.filter((p) => { const d = new Date(p.date); return d >= mStart && d < mEnd && (p.status === 'publicado' || p.status === 'programado'); });
+    const used = { posts: inMonth.filter((p) => ['Post', 'Carrusel'].includes(p.type)).length, reels: inMonth.filter((p) => ['Reel', 'Short', 'Video'].includes(p.type)).length, stories: inMonth.filter((p) => p.type === 'Historia').length, redes: Object.values(conn).filter((c) => c.status === 'conectado').length };
+    const usage = ['posts', 'reels', 'stories', 'redes'].map((k) => { const tot = Number(ctr.d[k]) || 0, u = Math.min(used[k] || 0, 999); const pc = tot ? Math.min(100, Math.round(u / tot * 100)) : 0; return { label: DLABEL[k], text: `${u} de ${tot}`, pct: pc + '%', bar: pc >= 100 ? '#FF5A5F' : '#21C4D6' }; });
+    const signer = ctr.signer;
+    const pay = ctr.payment;
+    const clientRef = cl.contactName ? `${cl.name}, representado por ${cl.contactName}` : `${cl.name}, representado por [nombre del representante]`;
+    const sections = [
+      { title: '1. Las partes', paras: [`Peek Media, agencia de marketing digital con domicilio en Santo Domingo, República Dominicana, representada por Dagoberto Nuñez (“la Agencia”), y ${clientRef}, RNC/Cédula [número] (“el Cliente”).`] },
+      { title: '2. Objeto', paras: [`La Agencia prestará al Cliente servicios de marketing digital bajo el ${plan.name}, en las redes: ${cl.platforms.map((p) => PLAT[p].name).join(', ')}.`] },
+      { title: '3. Servicios incluidos', paras: [...Object.keys(DLABEL).map((k) => `• ${DLABEL[k]}: ${ctr.d[k]}`), ...plan.extras.map((x) => '• ' + x), ...(ctr.addons.length ? ['Servicios adicionales: ' + ctr.addons.join(', ') + '.'] : [])] },
+      { title: '4. Precio y forma de pago', paras: [`El Cliente pagará ${rd(ctr.price)} mensuales [+ ITBIS, si aplica], a más tardar el día ${ctr.billingDay} de cada mes, por ${pay.toLowerCase()}. La inversión en anuncios pagados no está incluida y la paga el Cliente directamente a cada plataforma.`] },
+      { title: '5. Duración y renovación', paras: [`El contrato inicia el ${longDate(ctr.start)} y dura ${ctr.months} meses, hasta el ${endDate.toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })}. Luego se renueva mes a mes, salvo aviso por escrito de cualquiera de las partes con [30] días de anticipación.`] },
+      { title: '6. Aprobación de contenido', paras: ['El Cliente revisa y aprueba las publicaciones desde su panel de Peek Media. La Agencia no publica contenido que el Cliente no haya aprobado. [Plazo de respuesta y política si no hay respuesta: por definir].'] },
+      { title: '7. Accesos y datos', paras: ['El Cliente da acceso a sus cuentas mediante las conexiones oficiales de cada plataforma. La Agencia no solicita ni guarda contraseñas. Al terminar el contrato, la Agencia retira sus accesos y el Cliente puede revocarlos en cualquier momento.'] },
+      { title: '8. Propiedad del contenido', paras: ['El contenido producido y pagado bajo este contrato pertenece al Cliente. La Agencia puede mostrarlo en su portafolio, salvo que el Cliente indique lo contrario por escrito.'] },
+      { title: '9. Cambios de plan y cancelación', paras: ['El Cliente puede solicitar mejorar su plan desde su panel; el cambio se formaliza con una nueva versión de este contrato. Cualquiera de las partes puede terminarlo con aviso de [30] días; los meses ya prestados no son reembolsables.'] },
+      { title: '10. Firma electrónica', paras: ['Las partes aceptan firmar este contrato electrónicamente, conforme a la Ley No. 126-02 sobre Comercio Electrónico, Documentos y Firmas Digitales de la República Dominicana. [Validar con abogado].'] }
+    ];
+    const ed = st.cEdit;
+    const setEd = (p) => this.setState({ cEdit: { ...ed, ...p }, ctMsg: '' });
+    const efn = (label, key, type) => ({ label, type: type || 'number', value: ed ? ed[key] : '', onChange: (e) => setEd({ [key]: type === 'text' || type === 'date' ? e.target.value : Number(e.target.value) }) });
+    const efd = (k) => ({ label: DLABEL[k], type: 'number', value: ed ? ed.d[k] : '', onChange: (e) => setEd({ d: { ...ed.d, [k]: Number(e.target.value) } }) });
+    const ugList = PLANS.filter((p) => p.from > plan.from);
+    const pendingReq = (type, target) => requests.some((r) => r.type === type && r.target === target && r.status === 'pendiente');
+    const addReq = (type, target) => { if (pendingReq(type, target)) return; saveCt((n) => { n.requests.push({ id: 'rq-' + Date.now().toString(36), type, target, status: 'pendiente', by: ses.name, date: new Date().toISOString().slice(0, 10) }); }, 'Solicitud enviada. Tu agencia te contactará para ajustar el contrato.'); };
+    const invoices = (() => { const out = []; const s = new Date(ctr.start + 'T12:00:00'); const d = new Date(s.getFullYear(), s.getMonth(), 1); while (d <= T && out.length < 24) { out.push(new Date(d)); d.setMonth(d.getMonth() + 1); } return out.reverse().slice(0, 5).map((m, i) => ({ month: `${MONTHS[m.getMonth()]} ${m.getFullYear()}`, amount: rd(ctr.price), status: i === 0 ? (T.getDate() < (ctr.billingDay || 5) ? 'Próximo' : 'Pendiente') : 'Pagado', stBg: i === 0 ? '#FFE1E2' : 'rgba(33,196,214,0.25)' })); })();
+    const canSign = !isTeam && ctr.status === 'enviado' && isAdminRole;
+    this.sigRef = this.sigRef || React.createRef();
+    const pos = (e) => { const c = this.sigRef.current, r = c.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height]; };
+    const ct = {
+      banner: !isTeam && ctr.status === 'enviado', bannerTitle: 'Tu contrato está listo para firmar', bannerText: `${plan.name} · ${rd(ctr.price)} al mes. Revísalo y fírmalo desde tu panel, sin papeles.`,
+      goPlan: () => this.setState({ view: 'plan' }),
+      planName: plan.name, stLabel: STC[ctr.status][0], stBg: STC[ctr.status][1],
+      facts: [{ label: 'Inversión mensual', value: rd(ctr.price) }, { label: 'Inicio', value: longDate(ctr.start) }, (endDate < T && ctr.status === 'firmado' ? { label: 'Renovación', value: 'Mes a mes desde ' + endDate.toLocaleDateString('es-DO', { day: 'numeric', month: 'short' }) } : { label: 'Vigente hasta', value: endDate.toLocaleDateString('es-DO', { day: 'numeric', month: 'short', year: 'numeric' }) }), { label: 'Próximo pago', value: nextPay.toLocaleDateString('es-DO', { day: 'numeric', month: 'short' }) }],
+      extras: [...plan.extras, ...ctr.addons],
+      monthLabel: `${MONTHS[T.getMonth()]} ${T.getFullYear()} · publicado + programado`, usage,
+      editing: !!ed && isTeam, canEdit: isCM && !ed,
+      editNote: ctr.status === 'firmado' ? 'Al enviar se crea una nueva versión y el cliente vuelve a firmar.' : 'El cliente verá los cambios al enviarlo.',
+      onEdit: () => this.setState({ cEdit: JSON.parse(JSON.stringify(ctr.draftNext || ctr)), ctMsg: '' }), onCancelEdit: () => this.setState({ cEdit: null }),
+      planPick: PLANS.map((p) => ({ label: `${p.name} · desde ${rd(p.from)}`, bg: ed && ed.planId === p.id ? '#0B1F33' : '#FFFFFF', fg: ed && ed.planId === p.id ? '#FFFFFF' : '#0B1F33', border: ed && ed.planId === p.id ? '#0B1F33' : 'rgba(11,31,51,0.15)', onClick: () => setEd({ planId: p.id, d: { ...p.d }, price: Math.max(p.from, ed ? ed.price : 0) }) })),
+      editFields: [efn('Precio acordado (RD$/mes)', 'price'), efn('Fecha de inicio', 'start', 'date'), efn('Duración (meses)', 'months'), efn('Día de pago', 'billingDay'), efn('Forma de pago', 'payment', 'text'), ...Object.keys(DLABEL).map(efd)],
+      addonPick: ADDONS.map((a) => { const on = ed && ed.addons.includes(a); return { label: a, bg: on ? '#21C4D6' : '#FFFFFF', fg: '#0B1F33', border: on ? '#21C4D6' : 'rgba(11,31,51,0.15)', onClick: () => setEd({ addons: on ? ed.addons.filter((x) => x !== a) : [...ed.addons, a] }) }; }),
+      onSaveDraft: () => { saveCt((n) => { n.contract = { ...ed, status: n.contract.status === 'firmado' ? 'firmado' : 'borrador' }; if (ctr.status === 'firmado') n.contract = { ...ctr, draftNext: ed }; }, ctr.status === 'firmado' ? 'Borrador guardado. El contrato vigente no cambia hasta que lo envíes.' : 'Borrador guardado.'); this.setState({ cEdit: null }); },
+      onSend: () => { saveCt((n) => { if (ctr.status === 'firmado') n.history.push({ version: ctr.version, plan: Pn(ctr.planId).name, when: 'Firmado ' + longDate(ctr.signedAt) }); n.contract = { ...ed, draftNext: undefined, version: ctr.status === 'firmado' ? ctr.version + 1 : ctr.version, status: 'enviado', sentAt: new Date().toISOString(), signer: null, signedAt: null }; }, 'Enviado. El cliente lo verá al entrar a su panel.'); this.setState({ cEdit: null }); },
+      onPrint: () => { document.body.classList.add('pm-print-contract'); setTimeout(() => { window.print(); document.body.classList.remove('pm-print-contract'); }, 50); },
+      msg: st.ctMsg,
+      number: ctr.number, version: ctr.version, docDate: longDate(ctr.sentAt || ctr.start),
+      sections, clientName: cl.name, clientSigner: signer ? signer.name : (cl.contactName || 'Representante del cliente'),
+      sigImg: signer && signer.image ? signer.image : '', sigBg: signer && signer.image ? `url("${signer.image}") left bottom/contain no-repeat` : 'transparent', sigTyped: signer && !signer.image ? signer.typed : '', unsigned: !signer,
+      signedMeta: signer ? `Firmado electrónicamente por ${signer.name} (${signer.role || 'Cliente'}) el ${new Date(ctr.signedAt).toLocaleString('es-DO')} · Método: ${signer.method === 'draw' ? 'firma dibujada' : 'firma escrita'} · Código de verificación ${signer.code}` : '',
+      canSign,
+      waitingNote: isTeam && ctr.status === 'enviado' ? 'Esperando la firma del cliente. Lo verá como pendiente apenas entre a su panel.' : !isTeam && ctr.status === 'enviado' && !isAdminRole ? 'Tu contrato está pendiente de firma por un Administrador de tu negocio.' : isTeam && ctr.status === 'borrador' ? 'Este contrato está en borrador. El cliente no lo ve hasta que lo envíes para firma.' : '',
+      sign: {
+        name: st.sigName, onName: (e) => this.setState({ sigName: e.target.value, sigErr: '' }), preview: st.sigName || 'Tu firma',
+        tabs: [['type', 'Escribir'], ['draw', 'Dibujar']].map(([id, label]) => ({ label, bg: st.sigMode === id ? '#0B1F33' : 'transparent', fg: st.sigMode === id ? '#FFFFFF' : '#0B1F33', onClick: () => this.setState({ sigMode: id, sigHas: false }) })),
+        isType: st.sigMode === 'type', isDraw: st.sigMode === 'draw', ref: this.sigRef,
+        onDown: (e) => { const c = this.sigRef.current; if (!c) return; const x = c.getContext('2d'); x.lineWidth = 3; x.lineCap = 'round'; x.lineJoin = 'round'; x.strokeStyle = '#0B1F33'; x.beginPath(); x.moveTo(...pos(e)); this.drawing = true; try { c.setPointerCapture(e.pointerId); } catch (er) {} },
+        onMove: (e) => { if (!this.drawing) return; const x = this.sigRef.current.getContext('2d'); x.lineTo(...pos(e)); x.stroke(); this.sigDirty = true; },
+        onUp: () => { if (this.drawing && this.sigDirty && !st.sigHas) this.setState({ sigHas: true, sigErr: '' }); this.drawing = false; },
+        onClear: () => { const c = this.sigRef.current; if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height); this.sigDirty = false; this.setState({ sigHas: false }); },
+        accept: st.sigAccept, onAccept: (e) => this.setState({ sigAccept: e.target.checked, sigErr: '' }), err: st.sigErr,
+        onSign: () => {
+          if (st.sigName.trim().length < 5) return this.setState({ sigErr: 'Escribe tu nombre completo.' });
+          if (st.sigMode === 'draw' && !st.sigHas) return this.setState({ sigErr: 'Dibuja tu firma en el recuadro.' });
+          if (!st.sigAccept) return this.setState({ sigErr: 'Marca la casilla para aceptar el contrato.' });
+          const image = st.sigMode === 'draw' && this.sigRef.current ? this.sigRef.current.toDataURL('image/png') : null;
+          const now = new Date().toISOString();
+          saveCt((n) => { n.contract.status = 'firmado'; n.contract.signedAt = now; n.contract.signer = { name: st.sigName.trim(), role: ses.userRole, method: st.sigMode, typed: st.sigName.trim(), image, code: 'SIG-' + hash(now + st.sigName).toString(16).toUpperCase() }; }, '¡Listo! Contrato firmado. Puedes imprimirlo o guardarlo en PDF cuando quieras.');
+          this.setState({ sigName: '', sigAccept: false, sigHas: false });
+        }
+      },
+      upgrades: ugList.map((p) => { const pend = pendingReq('plan', p.id); return { name: p.name, from: 'desde ' + rd(p.from) + '/mes', diff: `${p.d.posts} publicaciones, ${p.d.reels} reels y ${p.d.stories} historias al mes · ${p.extras.slice(0, 2).join(' · ')}`,
+        btn: isTeam ? 'Preparar este plan' : pend ? 'Solicitud enviada' : 'Solicitar este plan', btnBg: pend ? '#BEBEBE' : '#FF5A5F',
+        onClick: () => { if (isTeam) return this.setState({ cEdit: { ...JSON.parse(JSON.stringify(ctr)), planId: p.id, d: { ...p.d }, price: p.from } }); if (!isAdminRole) return this.setState({ ctMsg: 'Solo un Administrador de tu negocio puede solicitar cambios de plan.' }); addReq('plan', p.id); } }; }),
+      topPlan: ugList.length === 0,
+      addonReq: ADDONS.filter((a) => !ctr.addons.includes(a)).map((a) => ({ label: (pendingReq('addon', a) ? '✓ ' : '+ ') + a, bg: pendingReq('addon', a) ? '#BEBEBE' : '#FFFFFF', onClick: () => { if (isTeam) return this.setState({ cEdit: { ...JSON.parse(JSON.stringify(ctr)), addons: [...ctr.addons, a] } }); if (!isAdminRole) return this.setState({ ctMsg: 'Solo un Administrador de tu negocio puede solicitar servicios.' }); addReq('addon', a); } })),
+      hasRequests: requests.length > 0,
+      requests: [...requests].reverse().map((r) => ({ title: r.type === 'plan' ? 'Cambio a ' + Pn(r.target).name : 'Agregar: ' + r.target, status: { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada' }[r.status], stBg: r.status === 'pendiente' ? '#FFE1E2' : r.status === 'aprobada' ? 'rgba(33,196,214,0.25)' : '#BEBEBE',
+        meta: `Solicitado por ${r.by} · ${longDate(r.date)}`, canAct: isCM && r.status === 'pendiente',
+        onApprove: () => { const base = JSON.parse(JSON.stringify(ctr)); const nx = r.type === 'plan' ? { ...base, planId: r.target, d: { ...Pn(r.target).d }, price: Math.max(base.price, Pn(r.target).from) } : { ...base, addons: [...base.addons, r.target] }; saveCt((n) => { n.requests.find((x) => x.id === r.id).status = 'aprobada'; }, 'Solicitud aprobada. Ajusta el contrato y envíalo para firma.'); this.setState({ cEdit: nx }); },
+        onReject: () => saveCt((n) => { n.requests.find((x) => x.id === r.id).status = 'rechazada'; }, 'Solicitud rechazada.') })),
+      invoices, hasHistory: history.length > 0, history: [...history].reverse()
+    };
+
+    // Conectar cuentas
+    const apps = st.apps || {};
+    const setConn = (p, val) => this.persist((n) => { n.conn = n.conn || JSON.parse(JSON.stringify(conn)); if (val) n.conn[p] = val; else delete n.conn[p]; });
+    const CST = { none: ['Sin conectar', '#BEBEBE', '#0B1F33', 'rgba(11,31,51,0.06)'], esperando: ['Esperando que termines', '#FFE1E2', '#0B1F33', '#FF5A5F'], verificando: ['En verificación', 'rgba(33,196,214,0.25)', '#0B1F33', '#21C4D6'], conectado: ['Conectado', '#0B1F33', '#FFFFFF', 'rgba(11,31,51,0.06)'] };
+    const cards = cl.platforms.map((p) => {
+      const c = conn[p] || { status: 'none' }, s = CST[c.status] || CST.none;
+      const oa = oauthUrl(p, apps, cl.id + ':' + p), man = MANUAL[p];
+      const url = oa || (man ? man.url : LOGIN_URL[p]);
+      const mode = oa ? 'oauth' : man ? 'manual' : 'pending';
+      const steps = mode === 'oauth' ? [`Inicia sesión en ${PLAT[p].name} en la ventana que se abrió.`, 'Elige la cuenta o página de tu negocio.', 'Acepta los permisos para Peek Media.', 'Vuelve aquí y toca “Ya lo hice”.']
+        : mode === 'manual' ? man.steps(apps.metaBusinessId || '[ID de negocio]')
+        : [`${PLAT[p].name} solo se conecta con la app de Peek Media.`, 'Inicia sesión en la ventana que se abrió para confirmar que la cuenta es tuya.', 'Te avisaremos cuando la conexión directa esté activa.'];
+      const showGuide = c.status === 'esperando' || st.guide === p;
+      return { name: PLAT[p].name, short: PLAT[p].short, color: PLAT[p].color, perms: PERMS[p] || [], url,
+        account: c.account || (c.status === 'none' ? 'Aún no conectada' : 'Cuenta por confirmar'),
+        stLabel: s[0], stBg: s[1], stFg: s[2], border: s[3],
+        via: c.status === 'conectado' ? '' : 'Se abre ' + (mode === 'manual' ? new URL(url).hostname.replace('www.', '') : HOST[PROVIDER[p]]),
+        showGuide, guideTitle: mode === 'oauth' ? 'Conexión directa' : mode === 'manual' ? 'Dar acceso como socio' : 'Conexión directa (próximamente)', steps: steps.map((t, i) => ({ n: i + 1, text: t })),
+        canDone: isAdminRole && c.status === 'esperando',
+        onDone: () => { setConn(p, { status: 'verificando' }); this.setState({ guide: null }); },
+        canConnect: isAdminRole && (c.status === 'none' || c.status === 'esperando'), connectLabel: c.status === 'esperando' ? 'Abrir de nuevo ↗' : `Conectar con ${PLAT[p].name} ↗`,
+        onConnect: () => { window.open(url, '_blank', 'noopener'); if (c.status === 'none') setConn(p, { status: 'esperando' }); this.setState({ guide: p }); },
+        canConfirm: isTeam && c.status === 'verificando',
+        onConfirm: () => { const acc = window.prompt('Cuenta conectada (usuario o página):', '@' + cl.handle); if (acc) setConn(p, { status: 'conectado', account: acc, date: new Date().toISOString() }); },
+        canDisconnect: isAdminRole && c.status !== 'none',
+        onDisconnect: () => { if (window.confirm(`¿Quitar el acceso de Peek Media a ${PLAT[p].name}? Para cortarlo del todo, quítalo también desde la configuración de ${PLAT[p].name}.`)) setConn(p, null); } };
+    });
+    const doneN = cl.platforms.length - pendingConn;
+    const setApp = (k) => (e) => { const n = { ...apps, [k]: e.target.value }; localStorage.setItem('pm-dash-apps', JSON.stringify(n)); this.setState({ apps: n }); };
+    const cx = { cards, done: doneN, total: cl.platforms.length, pct: Math.round(doneN / Math.max(1, cl.platforms.length) * 100) + '%',
+      appsHint: 'Sin estos datos, “Conectar” abre la página oficial de cada red para dar acceso como socio. Con ellos, abre directamente la pantalla oficial de autorización (OAuth) de cada red. Registra esta URL de retorno en cada app.',
+      appFields: [['Meta App ID (Instagram, Facebook, Threads)', 'meta'], ['ID de negocio de Peek Media (Meta)', 'metaBusinessId'], ['Google OAuth Client ID (YouTube, Google Business)', 'google'], ['TikTok Client Key', 'tiktok'], ['LinkedIn Client ID', 'linkedin'], ['Pinterest App ID', 'pinterest'], ['X Client ID', 'x'], ['URL de retorno (redirect URI)', 'redirect']]
+        .map(([label, k]) => { const g = APP_HELP[k]; return { label, value: apps[k] || '', ph: g.ph, onChange: setApp(k), url: g.url, urlLabel: g.url.replace('https://', ''), steps: g.steps.map((t, i) => ({ n: i + 1, text: t })) }; }) };
+
+    // Gestión de clientes
+    const mgSel = st.mgId === 'new' ? null : registry.find((c) => c.id === (st.mgId || cl.id));
+    const blank = { name: '', industry: '', handle: '', avatarBg: AVATARS[registry.length % 4], platforms: ['ig', 'fb'], contactName: '', contactEmail: '', contactPhone: '' };
+    const draft = st.mgDraft || (mgSel ? { name: mgSel.name, industry: mgSel.industry, handle: mgSel.handle, avatarBg: mgSel.avatarBg, platforms: [...mgSel.platforms], contactName: mgSel.contactName || '', contactEmail: mgSel.contactEmail || '', contactPhone: mgSel.contactPhone || '' } : blank);
+    const setDraft = (p) => this.setState({ mgDraft: { ...draft, ...p }, mgMsg: '' });
+    const updReg = (id, fn) => this.saveRegistry(registry.map((c) => { if (c.id !== id) return c; const n = JSON.parse(JSON.stringify(c)); fn(n); return n; }));
+    const mf = (label, key, type, ph, span) => ({ label, value: draft[key], type: type || 'text', ph: ph || '', span: span || 'auto', onChange: (e) => setDraft({ [key]: e.target.value }) });
+    const inviteText = (c, u) => `Hola ${u.name}, ya tienes acceso al panel de ${c.name} en Peek Media.\nEntra en: [enlace del panel]\nCorreo: ${u.email}\nCódigo de acceso: ${u.code}\nAl entrar, revisa y firma tu contrato en “Mi plan y contrato”.\nEste código es personal; no lo compartas.`;
+    const mg = {
+      list: registry.map((c) => ({ name: c.name, sub: `${c.industry || 'Sin rubro'} · ${(c.users || []).length} accesos`, avatarBg: c.avatarBg, initials: c.name.split(' ').map((w) => w[0]).slice(0, 2).join(''),
+        bg: mgSel && mgSel.id === c.id ? '#BEBEBE' : '#FFFFFF', border: mgSel && mgSel.id === c.id ? '#0B1F33' : 'rgba(11,31,51,0.08)',
+        onClick: () => this.setState({ mgId: c.id, mgDraft: null, mgMsg: '' }) })),
+      onNew: () => this.setState({ mgId: 'new', mgDraft: null, mgMsg: '' }),
+      title: mgSel ? mgSel.name : 'Nuevo cliente', saveLabel: mgSel ? 'Guardar cambios' : 'Crear espacio del cliente',
+      canOpen: !!mgSel, onOpen: () => mgSel && this.setState({ cid: mgSel.id, view: 'resumen' }),
+      canDelete: !!mgSel && !mgSel.seedClient && registry.length > 1,
+      onDelete: () => { if (!mgSel || !window.confirm(`¿Eliminar el espacio de ${mgSel.name}? Se borran sus publicaciones, notas y accesos.`)) return; localStorage.removeItem('pm-ws-' + mgSel.id); const rest = registry.filter((c) => c.id !== mgSel.id); this.saveRegistry(rest); this.setState({ mgId: null, mgDraft: null, cid: rest[0].id, mgMsg: '' }); },
+      fields: [mf('Nombre del negocio', 'name', 'text', 'Ej. Heladería Coco'), mf('Rubro y zona', 'industry', 'text', 'Ej. Heladería · Naco'), mf('Usuario principal en redes', 'handle', 'text', 'sin @'),
+        mf('Persona de contacto', 'contactName'), mf('Correo de contacto', 'contactEmail', 'email'), mf('Teléfono / WhatsApp', 'contactPhone', 'tel')],
+      colors: AVATARS.map((c) => ({ color: c, ring: draft.avatarBg === c ? '#0B1F33' : '#FFFFFF', onClick: () => setDraft({ avatarBg: c }) })),
+      plats: Object.keys(PLAT).map((p) => { const on = draft.platforms.includes(p); return { name: PLAT[p].name, color: PLAT[p].color, bg: on ? '#0B1F33' : '#FFFFFF', fg: on ? '#FFFFFF' : '#0B1F33', border: on ? '#0B1F33' : 'rgba(11,31,51,0.15)', onClick: () => setDraft({ platforms: on ? draft.platforms.filter((x) => x !== p) : [...draft.platforms, p] }) }; }),
+      msg: st.mgMsg,
+      onSave: () => {
+        if (!draft.name.trim()) return this.setState({ mgMsg: 'Escribe el nombre del negocio.' });
+        if (!draft.platforms.length) return this.setState({ mgMsg: 'Elige al menos una red.' });
+        if (mgSel) { updReg(mgSel.id, (n) => Object.assign(n, draft)); this.cache && delete this.cache[mgSel.id]; return this.setState({ mgDraft: null, mgMsg: 'Cambios guardados.' }); }
+        const id = draft.name.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) + '-' + Date.now().toString(36).slice(-4);
+        const r = mulberry32(hash(id)); const base = {};
+        draft.platforms.filter((p) => p !== 'gbp').forEach((p) => { base[p] = Math.round(300 + r() * 1800); });
+        const nc = { id, ...draft, base, types: ['Post', 'Carrusel', 'Reel', 'Historia'], captions: GENERIC_CAPTIONS, users: [], seedClient: false };
+        this.saveRegistry([...registry, nc]);
+        this.setState({ mgId: id, mgDraft: null, mgMsg: 'Espacio creado con un contrato en borrador (Plan Estratégico). Invita a las personas del cliente y envíales el contrato desde “Plan y contrato”.' });
+      },
+      noUsers: !!mgSel && !(mgSel.users || []).length,
+      users: mgSel ? (mgSel.users || []).map((u, i) => ({ ...u, status: u.active ? 'Activo' : 'Desactivado', op: u.active ? 1 : 0.55, toggleLabel: u.active ? 'Desactivar' : 'Activar',
+        onCopy: () => { const t = inviteText(mgSel, u); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => this.setState({ mgMsg: `Invitación de ${u.name} copiada.` }), () => window.prompt('Copia la invitación:', t)); },
+        onRegen: () => { updReg(mgSel.id, (n) => { n.users[i].code = newCode(); }); this.setState({ mgMsg: 'Código nuevo generado. El anterior ya no funciona.' }); },
+        onToggle: () => updReg(mgSel.id, (n) => { n.users[i].active = !n.users[i].active; }),
+        onRemove: () => { if (window.confirm(`¿Quitar el acceso de ${u.name}?`)) updReg(mgSel.id, (n) => { n.users.splice(i, 1); }); } })) : [],
+      nu: { ...st.nu, onName: (e) => this.setState({ nu: { ...st.nu, name: e.target.value } }), onEmail: (e) => this.setState({ nu: { ...st.nu, email: e.target.value } }), onRole: (e) => this.setState({ nu: { ...st.nu, role: e.target.value } }),
+        onAdd: () => {
+          const em = st.nu.email.trim().toLowerCase();
+          if (!mgSel || !st.nu.name.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return this.setState({ mgMsg: 'Escribe nombre y un correo válido.' });
+          if (registry.some((c) => (c.users || []).some((u) => u.email.toLowerCase() === em))) return this.setState({ mgMsg: 'Ese correo ya tiene acceso a otro espacio. Cada correo entra a un solo cliente.' });
+          updReg(mgSel.id, (n) => { n.users = [...(n.users || []), { id: 'u-' + Date.now().toString(36), name: st.nu.name.trim(), email: em, role: st.nu.role, code: newCode(), active: true }]; });
+          this.setState({ nu: { name: '', email: '', role: 'Administrador' }, mgMsg: 'Acceso creado. Copia la invitación y envíala.' });
+        } }
+    };
+
+    return {
+      needLogin: false, authed: true, login, cx, ct, isTeam, canApproveRole, mg, logout: this.logout,
+      sessionName: ses.name, sessionRole: isTeam ? 'Equipo Peek Media' : `${ses.userRole} · ${cl.name}`,
+      clientTabs, nav, roles, v, isCM, viewLabel: viewLabels[view],
+      client: { name: cl.name, industry: cl.industry, handle: cl.handle, avatarBg: cl.avatarBg, initials: cl.name.split(' ').map((w) => w[0]).slice(0, 2).join(''), plats: cl.platforms.map((p) => PLAT[p]) },
+      goCreate: () => this.setState({ view: 'crear' }), goNews: () => this.setState({ view: 'novedades' }),
+      kpis, chart, chartTabs, platCards, topPosts, upcoming, newsShort, news,
+      cal, legend, comp: compV,
+      inbox, inboxFilters, inboxEmpty: inbox.length === 0, msg, quickReplies, replyText: st.replyText, onReplyText: (e) => this.setState({ replyText: e.target.value }), sendReply,
+      approvals, approvalsEmpty: approvals.length === 0,
+      reportHead, reportCells, ages, cities, heatHours, heatCells, printReport: () => window.print(),
+      noteText: st.noteText, onNoteText: (e) => this.setState({ noteText: e.target.value }),
+      addNote: () => { const t = st.noteText.trim(); if (!t) return; this.persist((n) => { n.notes[cl.id] = [...(n.notes[cl.id] || []), { text: t, date: new Date().toISOString() }]; }); this.setState({ noteText: '' }); },
+      caps, modal, stop: (e) => e.stopPropagation()
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+/* El handoff (docs/) trae prototipos HTML con estilos propios: no generar clases desde ahí. */
+@source not "../../docs";
+
+/*
+ * Peek Media — tokens del sistema de diseño.
+ * Fuente: docs/handoff/marca/tokens.json + README del handoff.
+ * Cada token genera utilidades de Tailwind (bg-ink, text-coral-strong, rounded-lg, shadow-elevated…).
+ */
+@theme {
+  /* Reinicia la paleta por defecto: solo existen los colores de la marca. */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-white: #ffffff;
+
+  /* Marca */
+  --color-ink: #0b1f33;
+  --color-coral: #ff5a5f; /* CTAs (siempre con texto ink: 5.4:1) y acentos */
+  --color-coral-strong: #d6353c; /* Texto de error y botón destructivo (4.7:1 sobre blanco) */
+  --color-coral-tint: #ffe1e2; /* "Por aprobar", avisos, variación negativa */
+  --color-cyan: #21c4d6;
+  --color-cyan-tint: rgb(33 196 214 / 0.22); /* "Conectado", variación positiva */
+  --color-sand: #bebebe; /* Secciones grises y fondo de las apps */
+  --color-surface: #ffffff;
+  --color-ocean: #123553; /* Bloques de foto y avatares, nunca texto */
+
+  /* Tinta con transparencia para líneas y texto secundario */
+  --color-hairline: rgb(11 31 51 / 0.08);
+  --color-line: rgb(11 31 51 / 0.15); /* Bordes de input */
+  --color-muted: rgb(11 31 51 / 0.72); /* Texto secundario: 6.7:1 sobre blanco, 4.7:1 sobre sand */
+
+  /* Colores de red: solo puntos y chips, nunca texto */
+  --color-net-instagram: #ff5a5f;
+  --color-net-facebook: #123553;
+  --color-net-tiktok: #0b1f33;
+  --color-net-youtube: #21c4d6;
+  --color-net-google: #5b7a99;
+  --color-net-linkedin: #8fa3b5;
+  --color-net-threads: #3e5c76;
+  --color-net-x: #6b7f94;
+  --color-net-pinterest: #e8898c;
+
+  /* Tipografía (las variables --font-*-src las inyecta next/font en el layout) */
+  --font-display: var(--font-space-grotesk-src), system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans-src), system-ui, sans-serif;
+  --font-signature: var(--font-caveat-src), cursive;
+
+  /* Escala de texto */
+  --text-eyebrow: 12px;
+  --text-eyebrow--line-height: 16px;
+  --text-eyebrow--letter-spacing: 0.12em;
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-label: 14px;
+  --text-label--line-height: 20px;
+  --text-button: 15px;
+  --text-button--line-height: 20px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-lead: 19px;
+  --text-lead--line-height: 1.5;
+  --text-h3: 22px;
+  --text-h3--line-height: 1.2;
+  --text-h2: 28px;
+  --text-h2--line-height: 1.15;
+  --text-h1: 40px;
+  --text-h1--line-height: 1.1;
+  --text-display-sm: clamp(36px, 4.4vw, 60px);
+  --text-display-sm--line-height: 1;
+  --text-display-md: clamp(48px, 7vw, 112px);
+  --text-display-md--line-height: 0.9;
+  --text-display-lg: clamp(52px, 8.4vw, 132px);
+  --text-display-lg--line-height: 0.9;
+
+  /* Radios */
+  --radius-sm: 10px; /* chips, badges, inputs */
+  --radius-item: 14px; /* items de lista */
+  --radius-md: 20px; /* cards */
+  --radius-modal: 28px;
+  --radius-lg: 36px; /* bloques hero, contenedores grandes */
+
+  /* Sombras: solo dos en el sistema */
+  --shadow-elevated: 0 30px 60px -30px rgb(11 31 51 / 0.3);
+  --shadow-hover: 0 24px 40px -24px rgb(11 31 51 / 0.35);
+
+  /* Movimiento */
+  --ease-reveal: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-pulse-dot: pulse-dot 2.4s ease-in-out infinite;
+  --animate-typing: pulse-dot 1.2s ease-in-out infinite;
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-marquee: marquee var(--marquee-duration, 60s) linear infinite;
+  --animate-toast-in: toast-in 0.25s var(--ease-reveal);
+  --animate-spin: spin 0.8s linear infinite;
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.18);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes shimmer {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-cyan);
+    color: var(--color-ink);
+  }
+
+  /* Foco visible: anillo cian de 2px en todo lo interactivo */
+  :focus-visible {
+    outline: 2px solid var(--color-cyan);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role="button"],
+  [role="checkbox"],
+  [role="tab"],
+  summary {
+    cursor: pointer;
+  }
+}
+
+/* Texturas: solo en superficies decorativas, nunca detrás de tablas ni formularios */
+@utility bg-texture-gris {
+  background-color: var(--color-sand);
+  background-image: url("/brand/textura-gris.svg");
+  background-size: 420px 420px;
+}
+
+@utility bg-texture-blanco {
+  background-color: var(--color-surface);
+  background-image: url("/brand/textura-blanco.svg");
+  background-size: 420px 420px;
+}
+
+/* Reveal al hacer scroll (ver components/ui/reveal.tsx) */
+@utility reveal-hidden {
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+/* prefers-reduced-motion: apaga marquee, reveal, pulso, flotación y lifts */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal-hidden {
+    opacity: 1;
+    transform: none;
+  }
+}

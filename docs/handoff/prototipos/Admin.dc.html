@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Peek Media — Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="assets/peek-media-simbolo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;display=swap" rel="stylesheet">
+<script src="pm-store.js"></script>
+<style>
+body{margin:0;background:#BEBEBE url('assets/textura-gris.svg') 0 0/420px 420px repeat;color:#0B1F33;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#0B1F33;text-decoration:none}
+a:hover{color:#FF5A5F}
+input,textarea,select,button{font-family:inherit}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#BEBEBE url('assets/textura-gris.svg') 0 0/420px 420px repeat">
+
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-size:15px">Cargando…</div>
+</sc-if>
+
+<sc-if value="{{ locked }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+    <div style="width:100%;max-width:400px;background:#FFFFFF;border-radius:36px;padding:40px 32px;display:flex;flex-direction:column;gap:20px;align-items:center;text-align:center;box-shadow:0 30px 60px -30px rgba(11,31,51,0.3)">
+      <img src="assets/peek-media-simbolo.png" alt="Peek Media" style="width:64px;height:64px;object-fit:contain">
+      <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.02em">{{ lockTitle }}</div>
+      <div style="font-size:15px;line-height:1.5">{{ lockHint }}</div>
+      <input type="password" value="{{ pin }}" onChange="{{ onPin }}" onKeyDown="{{ onPinKey }}" placeholder="PIN" style="width:100%;text-align:center;letter-spacing:0.4em;font-size:20px;padding:14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);outline:none;color:#0B1F33" style-focus="border-color:#21C4D6">
+      <sc-if value="{{ pinErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#0B1F33;background:rgba(255,90,95,0.15);padding:8px 14px;border-radius:10px">{{ pinErr }}</div></sc-if>
+      <button type="button" onClick="{{ unlock }}" style="width:100%;background:#0B1F33;color:#FFFFFF;border:0;font-size:15px;font-weight:600;padding:16px;border-radius:999px;cursor:pointer">Entrar</button>
+      <a href="Peek Media Landing v2.dc.html" style="font-size:14px">← Volver al sitio</a>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ unlocked }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;min-height:100vh">
+
+  <aside style="flex:1 1 220px;max-width:100%;background:#FFFFFF url('assets/textura-blanco.svg') 0 0/420px 420px repeat;padding:24px 20px;display:flex;flex-direction:column;gap:32px;border-right:1px solid rgba(11,31,51,0.08)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:131px;height:48px;overflow:hidden"><img src="assets/peek-media-logo-horizontal.png" alt="Peek Media" style="height:64px;width:auto;display:block"></div>
+      <span style="font-size:12px;font-weight:700;letter-spacing:0.12em;background:#BEBEBE;padding:4px 8px;border-radius:10px">ADMIN</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <button type="button" onClick="{{ t.onClick }}" style="text-align:left;border:0;cursor:pointer;background:{{ t.bg }};color:{{ t.fg }};font-size:15px;font-weight:600;padding:12px 16px;border-radius:10px;display:flex;justify-content:space-between;align-items:center">{{ t.label }}<span style="font-size:12px;font-weight:500">{{ t.badge }}</span></button>
+      </sc-for>
+    </div>
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px;font-size:14px">
+      <a href="Dashboard Clientes.dc.html" style="font-weight:700">Dashboard de clientes →</a>
+      <a href="Peek Media Landing v2.dc.html" target="_blank">Ver sitio ↗</a>
+      <button type="button" onClick="{{ lock }}" style="text-align:left;background:none;border:0;padding:0;cursor:pointer;font-size:14px;color:#0B1F33">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main style="flex:999 1 640px;min-width:0;padding:32px clamp(16px,3vw,40px) 88px;display:flex;flex-direction:column;gap:32px">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h1 style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:clamp(36px,4vw,56px);line-height:1;letter-spacing:-0.035em;margin:0">{{ tabTitle }}</h1>
+        <div style="font-size:15px">{{ tabHint }}</div>
+      </div>
+      <sc-if value="{{ isEditor }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="font-size:14px">{{ saveStatus }}</span>
+          <button type="button" onClick="{{ discard }}" style="background:#FFFFFF;border:1.5px solid rgba(11,31,51,0.15);color:#0B1F33;font-size:15px;font-weight:600;padding:12px 20px;border-radius:999px;cursor:pointer">Descartar</button>
+          <button type="button" onClick="{{ save }}" style="background:{{ saveBg }};border:0;color:{{ saveFg }};font-size:15px;font-weight:600;padding:13px 24px;border-radius:999px;cursor:pointer">Guardar cambios</button>
+        </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ isEditor }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ showChips }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ chips }}" as="ch" hint-placeholder-count="8">
+            <button type="button" onClick="{{ ch.onClick }}" style="border:1.5px solid {{ ch.border }};background:{{ ch.bg }};color:{{ ch.fg }};font-size:14px;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer">{{ ch.label }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div style="background:#FFFFFF;border-radius:20px;padding:clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:32px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h2 style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:28px;letter-spacing:-0.02em;margin:0">{{ group.title }}</h2>
+          <sc-if value="{{ group.hasHint }}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;line-height:1.5">{{ group.hint }}</div></sc-if>
+        </div>
+        <sc-if value="{{ group.hasFields }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:20px">
+            <sc-for list="{{ group.fields }}" as="f" hint-placeholder-count="4">
+              <div style="grid-column:{{ f.span }};display:flex;flex-direction:column;gap:8px">
+                <sc-if value="{{ f.showLabel }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px;font-weight:600">{{ f.label }}</span></sc-if>
+                <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}"><input type="{{ f.inputType }}" value="{{ f.value }}" placeholder="{{ f.placeholder }}" onChange="{{ f.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6"></sc-if>
+                <sc-if value="{{ f.isArea }}" hint-placeholder-val="{{ false }}"><textarea rows="{{ f.rows }}" value="{{ f.value }}" placeholder="{{ f.placeholder }}" onChange="{{ f.onChange }}" style="width:100%;font-size:15px;line-height:1.5;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none;resize:vertical" style-focus="border-color:#21C4D6"></textarea></sc-if>
+                <sc-if value="{{ f.isSelect }}" hint-placeholder-val="{{ false }}"><select value="{{ f.value }}" onChange="{{ f.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none"><sc-for list="{{ f.options }}" as="o" hint-placeholder-count="0"><option value="{{ o }}">{{ o }}</option></sc-for></select></sc-if>
+                <sc-if value="{{ f.isCheck }}" hint-placeholder-val="{{ false }}"><label style="display:flex;gap:10px;align-items:center;font-size:15px;cursor:pointer;padding:10px 0"><input type="checkbox" checked="{{ f.checked }}" onChange="{{ f.onChange }}" style="width:18px;height:18px;accent-color:#0B1F33">{{ f.label }}</label></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-for list="{{ group.items }}" as="it" hint-placeholder-count="0">
+          <div style="border:1.5px solid rgba(11,31,51,0.1);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:12px;min-width:0">
+                <span style="width:32px;height:32px;border-radius:999px;background:#BEBEBE;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">{{ it.num }}</span>
+                <span style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;font-size:18px">{{ it.label }}</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button type="button" onClick="{{ it.onUp }}" style="width:36px;height:36px;border-radius:999px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;cursor:pointer;color:#0B1F33">↑</button>
+                <button type="button" onClick="{{ it.onDown }}" style="width:36px;height:36px;border-radius:999px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;cursor:pointer;color:#0B1F33">↓</button>
+                <button type="button" onClick="{{ it.onRemove }}" style="height:36px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,90,95,0.5);background:#FFFFFF;cursor:pointer;color:#0B1F33;font-size:13px;font-weight:600">Eliminar</button>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:20px">
+              <sc-for list="{{ it.fields }}" as="f2" hint-placeholder-count="2">
+                <div style="grid-column:{{ f2.span }};display:flex;flex-direction:column;gap:8px">
+                  <sc-if value="{{ f2.showLabel }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px;font-weight:600">{{ f2.label }}</span></sc-if>
+                  <sc-if value="{{ f2.isText }}" hint-placeholder-val="{{ true }}"><input type="{{ f2.inputType }}" value="{{ f2.value }}" placeholder="{{ f2.placeholder }}" onChange="{{ f2.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6"></sc-if>
+                  <sc-if value="{{ f2.isArea }}" hint-placeholder-val="{{ false }}"><textarea rows="{{ f2.rows }}" value="{{ f2.value }}" placeholder="{{ f2.placeholder }}" onChange="{{ f2.onChange }}" style="width:100%;font-size:15px;line-height:1.5;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none;resize:vertical" style-focus="border-color:#21C4D6"></textarea></sc-if>
+                  <sc-if value="{{ f2.isSelect }}" hint-placeholder-val="{{ false }}"><select value="{{ f2.value }}" onChange="{{ f2.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none"><sc-for list="{{ f2.options }}" as="o" hint-placeholder-count="0"><option value="{{ o }}">{{ o }}</option></sc-for></select></sc-if>
+                  <sc-if value="{{ f2.isCheck }}" hint-placeholder-val="{{ false }}"><label style="display:flex;gap:10px;align-items:center;font-size:15px;cursor:pointer;padding:10px 0"><input type="checkbox" checked="{{ f2.checked }}" onChange="{{ f2.onChange }}" style="width:18px;height:18px;accent-color:#0B1F33">{{ f2.label }}</label></sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ group.canAdd }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ group.onAdd }}" style="align-self:flex-start;background:#BEBEBE;border:1.5px dashed rgba(11,31,51,0.3);color:#0B1F33;font-size:15px;font-weight:600;padding:12px 22px;border-radius:999px;cursor:pointer">+ Añadir {{ group.itemName }}</button>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isClients }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px">
+        <sc-for list="{{ stats }}" as="st" hint-placeholder-count="4">
+          <div style="background:#FFFFFF;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;font-weight:600">{{ st.label }}</div>
+            <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.02em">{{ st.value }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+        <div style="flex:1 1 280px;min-width:0;background:#FFFFFF;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px">
+          <button type="button" onClick="{{ addClient }}" style="background:#FF5A5F;color:#0B1F33;border:0;font-size:15px;font-weight:600;padding:13px;border-radius:999px;cursor:pointer">+ Nuevo cliente</button>
+          <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="Buscar cliente o negocio" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);outline:none;color:#0B1F33" style-focus="border-color:#21C4D6">
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <sc-for list="{{ filters }}" as="fl" hint-placeholder-count="5">
+              <button type="button" onClick="{{ fl.onClick }}" style="border:0;background:{{ fl.bg }};color:{{ fl.fg }};font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;cursor:pointer">{{ fl.label }}</button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ noClients }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;padding:20px 4px;line-height:1.5">No hay clientes que coincidan.</div></sc-if>
+          <sc-for list="{{ clientList }}" as="cl" hint-placeholder-count="0">
+            <button type="button" onClick="{{ cl.onClick }}" style="text-align:left;cursor:pointer;background:{{ cl.bg }};border:1.5px solid {{ cl.border }};border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;color:#0B1F33;transition:transform .2s ease" style-hover="transform:translateY(-2px)">
+              <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+                <span style="font-weight:700;font-size:15px">{{ cl.name }}</span>
+                <span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:{{ cl.pillBg }};color:{{ cl.pillFg }};white-space:nowrap">{{ cl.status }}</span>
+              </div>
+              <span style="font-size:13px">{{ cl.sub }}</span>
+            </button>
+          </sc-for>
+        </div>
+
+        <div style="flex:3 1 560px;min-width:0;display:flex;flex-direction:column;gap:20px">
+          <sc-if value="{{ noSel }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#FFFFFF;border-radius:20px;padding:56px 32px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+              <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:28px">Selecciona o crea un cliente</div>
+              <div style="font-size:15px;max-width:420px;line-height:1.5">Guarda sus datos, conecta su Instagram y su cuenta de anuncios, y sigue sus métricas y tareas.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#0B1F33;color:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.02em;line-height:1">{{ cur.name }}</div>
+                <div style="font-size:14px">{{ cur.sub }}</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <a href="{{ cur.wa }}" target="_blank" style="background:#FF5A5F;color:#0B1F33;font-size:14px;font-weight:600;padding:11px 18px;border-radius:999px">WhatsApp</a>
+                <button type="button" onClick="{{ delClient }}" style="background:transparent;border:1.5px solid rgba(255,255,255,0.4);color:#FFFFFF;font-size:14px;font-weight:600;padding:10px 18px;border-radius:999px;cursor:pointer">Eliminar</button>
+              </div>
+            </div>
+
+            <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:20px">
+              <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Datos del cliente</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:20px">
+                <sc-for list="{{ clientFields }}" as="f3" hint-placeholder-count="8">
+                  <div style="grid-column:{{ f3.span }};display:flex;flex-direction:column;gap:8px">
+                    <span style="font-size:13px;font-weight:600">{{ f3.label }}</span>
+                    <sc-if value="{{ f3.isText }}" hint-placeholder-val="{{ true }}"><input type="{{ f3.inputType }}" value="{{ f3.value }}" placeholder="{{ f3.placeholder }}" onChange="{{ f3.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6"></sc-if>
+                    <sc-if value="{{ f3.isArea }}" hint-placeholder-val="{{ false }}"><textarea rows="{{ f3.rows }}" value="{{ f3.value }}" placeholder="{{ f3.placeholder }}" onChange="{{ f3.onChange }}" style="width:100%;font-size:15px;line-height:1.5;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none;resize:vertical" style-focus="border-color:#21C4D6"></textarea></sc-if>
+                    <sc-if value="{{ f3.isSelect }}" hint-placeholder-val="{{ false }}"><select value="{{ f3.value }}" onChange="{{ f3.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none"><sc-for list="{{ f3.options }}" as="o" hint-placeholder-count="0"><option value="{{ o }}">{{ o }}</option></sc-for></select></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:20px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div style="display:flex;flex-direction:column;gap:4px">
+                  <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Métricas · Meta</div>
+                  <div style="font-size:13px">{{ lastSync }}</div>
+                </div>
+                <button type="button" onClick="{{ sync }}" style="background:#21C4D6;color:#0B1F33;border:0;font-size:15px;font-weight:700;padding:12px 22px;border-radius:999px;cursor:pointer">{{ syncLabel }}</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:20px">
+                <sc-for list="{{ metaFields }}" as="f4" hint-placeholder-count="3">
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <span style="font-size:13px;font-weight:600">{{ f4.label }}</span>
+                    <input type="{{ f4.inputType }}" value="{{ f4.value }}" placeholder="{{ f4.placeholder }}" onChange="{{ f4.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6">
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ syncErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;background:rgba(255,90,95,0.14);padding:12px 16px;border-radius:10px;line-height:1.45">{{ syncErr }}</div></sc-if>
+              <sc-for list="{{ warnings }}" as="wn" hint-placeholder-count="0"><div style="font-size:13px;background:#BEBEBE;padding:10px 14px;border-radius:10px;line-height:1.45">{{ wn }}</div></sc-for>
+              <sc-if value="{{ noSnap }}" hint-placeholder-val="{{ true }}">
+                <div style="border:1.5px dashed rgba(11,31,51,0.25);border-radius:20px;padding:32px;text-align:center;font-size:15px;line-height:1.5">Sin datos todavía. Agrega el ID de Instagram Business y el token, y presiona Sincronizar.</div>
+              </sc-if>
+              <sc-if value="{{ hasSnap }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,170px),1fr));gap:12px">
+                  <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="0">
+                    <div style="background:#BEBEBE;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:6px">
+                      <div style="font-size:13px;font-weight:600">{{ k.label }}</div>
+                      <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:28px;letter-spacing:-0.02em">{{ k.value }}</div>
+                      <div style="font-size:13px;font-weight:600">{{ k.delta }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ hasAds }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">Anuncios · últimos 30 días</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:12px">
+                  <sc-for list="{{ ads }}" as="ad" hint-placeholder-count="0">
+                    <div style="border:1.5px solid rgba(11,31,51,0.1);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:6px">
+                      <div style="font-size:13px;font-weight:600">{{ ad.label }}</div>
+                      <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">{{ ad.value }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ hasMedia }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">Posts con más interacción</div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <sc-for list="{{ media }}" as="md" hint-placeholder-count="0">
+                    <a href="{{ md.permalink }}" target="_blank" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(11,31,51,0.08)">
+                      <span style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ md.caption }}</span>
+                      <span style="font-size:13px;font-weight:600;white-space:nowrap">♥ {{ md.likes }} · 💬 {{ md.comments }}</span>
+                      <span style="grid-column:1 / -1;height:8px;border-radius:999px;background:#BEBEBE;overflow:hidden;display:block"><span style="display:block;height:100%;width:{{ md.pct }};background:#21C4D6;border-radius:999px"></span></span>
+                    </a>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">Historial de sincronizaciones</div>
+                <div style="display:flex;flex-direction:column">
+                  <sc-for list="{{ history }}" as="hs" hint-placeholder-count="0">
+                    <div style="display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:10px 0;border-bottom:1px solid rgba(11,31,51,0.08)"><span>{{ hs.date }}</span><span><strong>{{ hs.followers }}</strong> seguidores · {{ hs.delta }}</span></div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px">
+              <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Tareas</div>
+              <div style="display:flex;gap:8px">
+                <input value="{{ task }}" onChange="{{ onTask }}" onKeyDown="{{ onTaskKey }}" placeholder="Ej. Enviar calendario de contenido" style="flex:1;min-width:0;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);outline:none;color:#0B1F33" style-focus="border-color:#21C4D6">
+                <button type="button" onClick="{{ addTask }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:15px;font-weight:600;padding:0 20px;border-radius:999px;cursor:pointer">Añadir</button>
+              </div>
+              <sc-for list="{{ tasks }}" as="tk" hint-placeholder-count="0">
+                <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(11,31,51,0.08)">
+                  <input type="checkbox" checked="{{ tk.done }}" onChange="{{ tk.onToggle }}" style="width:18px;height:18px;accent-color:#0B1F33">
+                  <span style="flex:1;font-size:15px;text-decoration:{{ tk.deco }}">{{ tk.text }}</span>
+                  <button type="button" onClick="{{ tk.onRemove }}" style="background:none;border:0;cursor:pointer;font-size:18px;color:#0B1F33">×</button>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#FFFFFF;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:20px">
+        <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Acceso y Meta API</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:20px">
+          <sc-for list="{{ settingsFields }}" as="f5" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:13px;font-weight:600">{{ f5.label }}</span>
+              <input type="{{ f5.inputType }}" value="{{ f5.value }}" placeholder="{{ f5.placeholder }}" onChange="{{ f5.onChange }}" style="width:100%;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,31,51,0.15);background:#FFFFFF;color:#0B1F33;outline:none" style-focus="border-color:#21C4D6">
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <button type="button" onClick="{{ saveSettings }}" style="background:#0B1F33;color:#FFFFFF;border:0;font-size:15px;font-weight:600;padding:13px 24px;border-radius:999px;cursor:pointer">Guardar ajustes</button>
+          <span style="font-size:14px">{{ settingsMsg }}</span>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:20px">
+        <div style="font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:22px">Respaldo</div>
+        <div style="font-size:15px;line-height:1.5;max-width:640px">Por ahora los datos se guardan en este navegador. Descarga un respaldo con frecuencia.</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <button type="button" onClick="{{ exportAll }}" style="background:#BEBEBE;border:0;color:#0B1F33;font-size:15px;font-weight:600;padding:13px 22px;border-radius:999px;cursor:pointer">Descargar respaldo (.json)</button>
+          <button type="button" onClick="{{ exportCsv }}" style="background:#BEBEBE;border:0;color:#0B1F33;font-size:15px;font-weight:600;padding:13px 22px;border-radius:999px;cursor:pointer">Clientes en Excel (.csv)</button>
+          <label style="background:#BEBEBE;color:#0B1F33;font-size:15px;font-weight:600;padding:13px 22px;border-radius:999px;cursor:pointer">Importar respaldo<input type="file" accept=".json" onChange="{{ importAll }}" style="display:none"></label>
+          <button type="button" onClick="{{ resetContent }}" style="background:#FFFFFF;border:1.5px solid rgba(255,90,95,0.5);color:#0B1F33;font-size:15px;font-weight:600;padding:12px 22px;border-radius:999px;cursor:pointer">Restablecer contenido del sitio</button>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ready: false, unlocked: false, pin: '', pinErr: '', tab: 'contenido', group: 'general', draft: null, dirty: false, savedAt: '',
+    clients: [], selId: null, search: '', filter: 'Todos', syncing: false, syncErr: '', settings: null, set: {}, settingsMsg: '', task: '' };
+
+  componentDidMount() {
+    const init = () => {
+      if (!window.PMStore) return setTimeout(init, 30);
+      const S = window.PMStore, settings = S.loadSettings();
+      this.setState({ ready: true, draft: S.load(), clients: S.loadClients(), settings,
+        set: { apiVersion: settings.apiVersion, defaultToken: settings.defaultToken, newPin: '' },
+        unlocked: !!settings.pin && sessionStorage.getItem('pm-admin-ok') === '1' });
+    };
+    init();
+  }
+
+  unlock = () => {
+    const { pin, settings } = this.state, S = window.PMStore;
+    if (!settings.pin) {
+      if (pin.length < 4) return this.setState({ pinErr: 'El PIN debe tener al menos 4 caracteres.' });
+      const ns = { ...settings, pin };
+      S.saveSettings(ns);
+      sessionStorage.setItem('pm-admin-ok', '1');
+      return this.setState({ settings: ns, unlocked: true, pin: '', pinErr: '' });
+    }
+    if (pin === settings.pin) { sessionStorage.setItem('pm-admin-ok', '1'); this.setState({ unlocked: true, pin: '', pinErr: '' }); }
+    else this.setState({ pinErr: 'PIN incorrecto.' });
+  };
+  lock = () => { sessionStorage.removeItem('pm-admin-ok'); this.setState({ unlocked: false }); };
+
+  setD(fn) { this.setState((s) => { const n = JSON.parse(JSON.stringify(s.draft)); fn(n); return { draft: n, dirty: true }; }); }
+  save = () => {
+    window.PMStore.save(this.state.draft);
+    this.setState({ dirty: false, savedAt: new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }) });
+  };
+  discard = () => this.setState({ draft: window.PMStore.load(), dirty: false });
+
+  setClients(list) { window.PMStore.saveClients(list); this.setState({ clients: list }); }
+  updC(id, fn) {
+    this.setClients(this.state.clients.map((c) => { if (c.id !== id) return c; const n = JSON.parse(JSON.stringify(c)); fn(n); return n; }));
+  }
+  cur() { return this.state.clients.find((c) => c.id === this.state.selId); }
+  addClient = () => {
+    const c = { id: Date.now().toString(36), name: 'Nuevo cliente', business: '', phone: '', email: '', plan: '', status: 'Prospecto', fee: '',
+      start: new Date().toISOString().slice(0, 10), igId: '', adAccount: '', token: '', notes: '', tasks: [], snapshots: [] };
+    this.setClients([c, ...this.state.clients]);
+    this.setState({ selId: c.id, syncErr: '' });
+  };
+  delClient = () => {
+    const c = this.cur();
+    if (!c || !window.confirm(`¿Eliminar a ${c.name}? Esta acción no se puede deshacer.`)) return;
+    this.setClients(this.state.clients.filter((x) => x.id !== c.id));
+    this.setState({ selId: null });
+  };
+  sync = async () => {
+    const c = this.cur();
+    if (!c || this.state.syncing) return;
+    this.setState({ syncing: true, syncErr: '' });
+    try {
+      const out = await window.PMStore.syncClient(c, this.state.settings);
+      this.updC(c.id, (n) => { n.snapshots = [...(n.snapshots || []), out].slice(-24); });
+      this.setState({ syncing: false });
+    } catch (e) { this.setState({ syncing: false, syncErr: 'Meta respondió: ' + e.message }); }
+  };
+  addTask = () => {
+    const t = this.state.task.trim(), c = this.cur();
+    if (!t || !c) return;
+    this.updC(c.id, (n) => { n.tasks = [...(n.tasks || []), { text: t, done: false }]; });
+    this.setState({ task: '' });
+  };
+
+  download(name, text, type) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type }));
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  exportAll = () => {
+    const S = window.PMStore;
+    this.download(`peekmedia-respaldo-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ content: S.load(), clients: S.loadClients() }, null, 2), 'application/json');
+  };
+  exportCsv = () => {
+    const cols = ['name', 'business', 'phone', 'email', 'plan', 'status', 'fee', 'start', 'notes'];
+    const head = ['Nombre', 'Negocio', 'Teléfono', 'Email', 'Plan', 'Estado', 'Tarifa mensual', 'Inicio', 'Notas'];
+    const esc = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+    const rows = [head.map(esc).join(','), ...this.state.clients.map((c) => cols.map((k) => esc(c[k])).join(','))];
+    this.download('peekmedia-clientes.csv', '\ufeff' + rows.join('\n'), 'text/csv');
+  };
+  importAll = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const j = JSON.parse(r.result), S = window.PMStore;
+        if (j.content) S.save(j.content);
+        if (j.clients) S.saveClients(j.clients);
+        this.setState({ draft: S.load(), clients: S.loadClients(), dirty: false, settingsMsg: 'Respaldo importado.' });
+      } catch (err) { this.setState({ settingsMsg: 'El archivo no es un respaldo válido.' }); }
+    };
+    r.readAsText(file);
+  };
+  resetContent = () => {
+    if (!window.confirm('¿Restablecer todo el contenido del sitio a la versión original? Los clientes no se borran.')) return;
+    window.PMStore.reset();
+    this.setState({ draft: window.PMStore.load(), dirty: false, settingsMsg: 'Contenido restablecido.' });
+  };
+  saveSettings = () => {
+    const { set, settings } = this.state;
+    const ns = { ...settings, apiVersion: set.apiVersion || 'v21.0', defaultToken: set.defaultToken || '' };
+    if (set.newPin) {
+      if (set.newPin.length < 4) return this.setState({ settingsMsg: 'El PIN debe tener al menos 4 caracteres.' });
+      ns.pin = set.newPin;
+    }
+    window.PMStore.saveSettings(ns);
+    this.setState({ settings: ns, set: { ...set, newPin: '' }, settingsMsg: 'Ajustes guardados.' });
+  };
+
+  field(label, value, set, type = 'text', extra = {}) {
+    const isArea = type === 'area' || type === 'lines';
+    return {
+      label, showLabel: type !== 'check',
+      value: type === 'lines' ? (value || []).join('\n') : (value ?? ''),
+      checked: !!value,
+      isText: ['text', 'number', 'password', 'date', 'email', 'tel'].includes(type),
+      inputType: type, isArea, rows: extra.rows || 3,
+      isSelect: type === 'select', isCheck: type === 'check', options: extra.options || [],
+      placeholder: extra.placeholder || (type === 'lines' ? 'Un elemento por línea' : ''),
+      span: isArea || extra.wide ? '1 / -1' : 'auto',
+      onChange: (e) => { const v = type === 'check' ? e.target.checked : e.target.value; set(type === 'lines' ? v.split('\n') : v); }
+    };
+  }
+
+  renderVals() {
+    const st = this.state;
+    if (!st.ready) return { loading: true, locked: false, unlocked: false };
+    const firstTime = !st.settings.pin;
+    const lockVals = {
+      loading: false, locked: !st.unlocked, unlocked: st.unlocked, pin: st.pin, pinErr: st.pinErr,
+      lockTitle: firstTime ? 'Crea tu PIN' : 'Admin',
+      lockHint: firstTime ? 'Es la primera vez que entras. Elige un PIN de al menos 4 caracteres.' : 'Ingresa tu PIN para continuar.',
+      onPin: (e) => this.setState({ pin: e.target.value, pinErr: '' }),
+      onPinKey: (e) => { if (e.key === 'Enter') this.unlock(); },
+      unlock: this.unlock
+    };
+    if (!st.unlocked) return lockVals;
+
+    const S = window.PMStore, d = st.draft;
+    const cf = (label, key, type, extra) => this.field(label, d[key], (v) => this.setD((n) => { n[key] = v; }), type || 'text', extra || {});
+    const defs = {
+      general: { title: 'General', hint: 'Contacto, redes y textos principales del sitio.', fields: [
+        cf('WhatsApp (código de país + número, ej. 18095551234)', 'whatsapp', 'tel'), cf('Sitio web', 'website'), cf('Usuario de Instagram (sin @)', 'instagram'),
+        cf('Seguidores', 'followers'), cf('Publicaciones', 'postsCount'),
+        cf('Texto del hero', 'heroText', 'area'), cf('Texto de Sobre nosotros', 'aboutText', 'area', { rows: 5 }),
+        cf('Foto de Dagoberto (URL de imagen)', 'aboutPhoto', 'text', { wide: true, placeholder: 'https://…' })] },
+      plans: { title: 'Planes', hint: 'Los tres planes de la sección Servicios.', list: 'plans', itemName: 'plan', labelKey: 'name',
+        blank: { name: 'Nuevo plan', desc: '', price: '[Precio]', items: [], featured: false },
+        item: [['Nombre', 'name'], ['Precio', 'price'], ['Descripción', 'desc', 'area'], ['Qué incluye', 'items', 'lines', { rows: 5 }], ['Marcar como “Más elegido”', 'featured', 'check']] },
+      posts: { title: 'Feed / Portafolio', hint: 'Pega la URL de la portada y el enlace al post. Sin imagen se muestra la tarjeta de color.', list: 'posts', itemName: 'post', labelKey: 'title',
+        blank: { title: 'Nuevo post', tag: '', image: '', url: '' },
+        item: [['Título', 'title', 'text', { wide: true }], ['Etiqueta', 'tag'], ['URL de la imagen', 'image', 'text', { placeholder: 'https://…' }], ['Enlace al post', 'url', 'text', { placeholder: 'https://instagram.com/p/…' }]] },
+      process: { title: 'Cómo trabajamos', list: 'process', itemName: 'paso', labelKey: 'title', blank: { title: 'Nuevo paso', desc: '' },
+        item: [['Título', 'title'], ['Descripción', 'desc', 'area']] },
+      caso: { title: 'Caso real', hint: 'Usa solo métricas verificadas.', list: 'caseMetrics', itemName: 'métrica', labelKey: 'label',
+        fields: [cf('Texto del caso', 'caseText', 'area', { rows: 4 }), cf('Foto del proyecto (URL)', 'casePhoto', 'text', { wide: true, placeholder: 'https://…' })],
+        blank: { value: '[Resultado / métrica verificada]', label: '' }, item: [['Cifra o resultado', 'value'], ['Etiqueta', 'label']] },
+      logos: { title: 'Logos de clientes', hint: 'Publica un logo solo con permiso del cliente.', list: 'clientLogos', itemName: 'logo', labelKey: 'name',
+        blank: { name: '', image: '' }, item: [['Nombre', 'name'], ['URL del logo', 'image', 'text', { placeholder: 'https://…' }]] },
+      testimonials: { title: 'Testimonios', list: 'testimonials', itemName: 'testimonio', labelKey: 'name', blank: { quote: '', name: '', business: '' },
+        item: [['Testimonio', 'quote', 'area'], ['Nombre', 'name'], ['Negocio', 'business']] },
+      faq: { title: 'Preguntas frecuentes', list: 'faq', itemName: 'pregunta', labelKey: 'q', blank: { q: '', a: '' },
+        item: [['Pregunta', 'q', 'text', { wide: true }], ['Respuesta', 'a', 'area']] },
+      services: { title: 'Servicios del cotizador', hint: 'Deja el precio vacío para mostrar “A cotizar”. Escribe solo números, en RD$.', list: 'quoteServices', itemName: 'servicio', labelKey: 'name',
+        blank: { name: 'Nuevo servicio', desc: '', price: '', unit: 'mensual' },
+        item: [['Servicio', 'name'], ['Precio desde (RD$)', 'price', 'number'], ['Descripción', 'desc', 'text', { wide: true }], ['Cobro', 'unit', 'select', { options: ['mensual', 'único'] }]] }
+    };
+    const isEditor = st.tab === 'contenido' || st.tab === 'cotizador';
+    const gid = st.tab === 'cotizador' ? 'services' : st.group;
+    const g = defs[gid];
+    const list = g.list ? d[g.list] || [] : [];
+    const group = {
+      title: g.title, hint: g.hint || '', hasHint: !!g.hint, fields: g.fields || [], hasFields: !!(g.fields && g.fields.length),
+      canAdd: !!g.list, itemName: g.itemName || '',
+      onAdd: () => this.setD((n) => { n[g.list] = [...(n[g.list] || []), JSON.parse(JSON.stringify(g.blank))]; }),
+      items: list.map((it, i) => ({
+        num: i + 1, label: it[g.labelKey] || 'Sin título',
+        fields: g.item.map(([label, key, type, extra]) => this.field(label, it[key], (v) => this.setD((n) => { n[g.list][i][key] = v; }), type || 'text', extra || {})),
+        onUp: () => this.setD((n) => { const a = n[g.list]; if (i > 0) [a[i - 1], a[i]] = [a[i], a[i - 1]]; }),
+        onDown: () => this.setD((n) => { const a = n[g.list]; if (i < a.length - 1) [a[i + 1], a[i]] = [a[i], a[i + 1]]; }),
+        onRemove: () => this.setD((n) => { n[g.list].splice(i, 1); })
+      }))
+    };
+    const chips = Object.keys(defs).filter((k) => k !== 'services').map((k) => {
+      const on = k === st.group;
+      return { label: defs[k].title, bg: on ? '#0B1F33' : '#FFFFFF', fg: on ? '#FFFFFF' : '#0B1F33', border: on ? '#0B1F33' : 'rgba(11,31,51,0.12)', onClick: () => this.setState({ group: k }) };
+    });
+
+    const tabDefs = [
+      ['contenido', 'Contenido del sitio', 'Edita textos, planes, posts y más. Los cambios se ven en el sitio al guardar.'],
+      ['cotizador', 'Cotizador', 'Servicios y precios que aparecen en “Cotiza a tu medida”.'],
+      ['clientes', 'Clientes', 'Gestión de clientes, tareas y métricas de Instagram y Meta Ads.'],
+      ['ajustes', 'Ajustes', 'PIN, conexión con Meta y respaldos.']
+    ];
+    const tabs = tabDefs.map(([id, label]) => {
+      const on = st.tab === id;
+      return { label, badge: id === 'clientes' ? String(st.clients.length) : '', bg: on ? '#0B1F33' : 'transparent', fg: on ? '#FFFFFF' : '#0B1F33', onClick: () => this.setState({ tab: id }) };
+    });
+    const curTab = tabDefs.find((t) => t[0] === st.tab);
+
+    const statuses = ['Prospecto', 'Activo', 'Pausado', 'Finalizado'];
+    const pill = { Prospecto: ['#21C4D6', '#0B1F33'], Activo: ['#0B1F33', '#FFFFFF'], Pausado: ['#BEBEBE', '#0B1F33'], Finalizado: ['rgba(11,31,51,0.1)', '#0B1F33'] };
+    const q = st.search.trim().toLowerCase();
+    const filtered = st.clients.filter((c) => (st.filter === 'Todos' || c.status === st.filter) && (!q || (c.name + ' ' + c.business).toLowerCase().includes(q)));
+    const clientList = filtered.map((c) => {
+      const on = c.id === st.selId, [pb, pf] = pill[c.status] || pill.Prospecto;
+      return { name: c.name, status: c.status, sub: [c.business, c.plan].filter(Boolean).join(' · ') || 'Sin detalles', bg: on ? '#BEBEBE' : '#FFFFFF', border: on ? '#0B1F33' : 'rgba(11,31,51,0.1)',
+        pillBg: pb, pillFg: pf, onClick: () => this.setState({ selId: c.id, syncErr: '' }) };
+    });
+    const active = st.clients.filter((c) => c.status === 'Activo');
+    const income = active.reduce((a, c) => a + (S.parsePrice(c.fee) || 0), 0);
+    const stats = [
+      { label: 'Clientes', value: String(st.clients.length) },
+      { label: 'Activos', value: String(active.length) },
+      { label: 'Prospectos', value: String(st.clients.filter((c) => c.status === 'Prospecto').length) },
+      { label: 'Ingreso mensual (activos)', value: S.money(income) }
+    ];
+    const filters = ['Todos', ...statuses].map((f) => ({ label: f, bg: st.filter === f ? '#0B1F33' : '#BEBEBE', fg: st.filter === f ? '#FFFFFF' : '#0B1F33', onClick: () => this.setState({ filter: f }) }));
+
+    const c = this.cur();
+    let det = { hasSel: false, noSel: true };
+    if (c) {
+      const cfc = (label, key, type, extra) => this.field(label, c[key], (v) => this.updC(c.id, (n) => { n[key] = v; }), type || 'text', extra || {});
+      const planOpts = ['', ...(d.plans || []).map((p) => p.name), 'Personalizado'];
+      const fmt = (n) => (n == null || n === '' || isNaN(Number(n)) ? '—' : Number(n).toLocaleString('es-DO', { maximumFractionDigits: 2 }));
+      const snaps = c.snapshots || [], snap = snaps[snaps.length - 1], prev = snaps[snaps.length - 2];
+      const dateFmt = (iso) => new Date(iso).toLocaleString('es-DO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const kpis = [];
+      let ads = [], media = [], history = [], warnings = [];
+      if (snap) {
+        const p = snap.profile || {}, ins = snap.insights || {};
+        if (p.followers_count != null) {
+          const df = prev && prev.profile ? p.followers_count - prev.profile.followers_count : null;
+          kpis.push({ label: 'Seguidores', value: fmt(p.followers_count), delta: df == null ? '' : (df >= 0 ? '+' : '') + fmt(df) + ' desde el último sync' });
+        }
+        if (p.media_count != null) kpis.push({ label: 'Publicaciones', value: fmt(p.media_count), delta: '' });
+        [['reach', 'Alcance (30 días)'], ['accounts_engaged', 'Cuentas que interactuaron'], ['total_interactions', 'Interacciones (30 días)'], ['profile_views', 'Visitas al perfil']]
+          .forEach(([k, l]) => { if (ins[k] != null) kpis.push({ label: l, value: fmt(ins[k]), delta: '' }); });
+        const m = snap.media || [];
+        if (m.length && p.followers_count) {
+          const avg = m.reduce((a, x) => a + (x.like_count || 0) + (x.comments_count || 0), 0) / m.length;
+          kpis.push({ label: 'Engagement por post', value: (avg / p.followers_count * 100).toFixed(2) + '%', delta: `Promedio de ${m.length} posts` });
+        }
+        const top = [...m].map((x) => ({ ...x, eng: (x.like_count || 0) + (x.comments_count || 0) })).sort((a, b) => b.eng - a.eng).slice(0, 6);
+        const max = Math.max(1, ...top.map((x) => x.eng));
+        media = top.map((x) => ({ caption: (x.caption || x.media_type || 'Post').split('\n')[0].slice(0, 90), likes: fmt(x.like_count || 0), comments: fmt(x.comments_count || 0), pct: Math.round(x.eng / max * 100) + '%', permalink: x.permalink || '#' }));
+        if (snap.ads) {
+          const a = snap.ads;
+          ads = [['Gasto', a.spend], ['Impresiones', a.impressions], ['Alcance', a.reach], ['Clics', a.clicks], ['CTR', a.ctr != null ? Number(a.ctr).toFixed(2) + '%' : null], ['CPC', a.cpc]]
+            .map(([label, v]) => ({ label, value: typeof v === 'string' && v.endsWith('%') ? v : fmt(v) }));
+        }
+        warnings = [snap.insightsError && 'Insights: ' + snap.insightsError, snap.mediaError && 'Posts: ' + snap.mediaError, snap.adsError && 'Anuncios: ' + snap.adsError].filter(Boolean);
+        history = snaps.map((s, i) => {
+          const f = s.profile && s.profile.followers_count, pf = i > 0 && snaps[i - 1].profile ? snaps[i - 1].profile.followers_count : null;
+          return { date: dateFmt(s.date), followers: fmt(f), delta: f != null && pf != null ? ((f - pf >= 0 ? '+' : '') + fmt(f - pf)) : '—' };
+        }).reverse().slice(0, 8);
+      }
+      det = {
+        hasSel: true, noSel: false,
+        cur: { name: c.name, sub: [c.business, c.plan, c.status].filter(Boolean).join(' · '), wa: S.waLink(c.phone, `Hola ${c.name}, te escribimos de Peek Media.`) },
+        clientFields: [cfc('Nombre', 'name'), cfc('Negocio', 'business'), cfc('Teléfono / WhatsApp', 'phone', 'tel'), cfc('Email', 'email', 'email'),
+          cfc('Plan', 'plan', 'select', { options: planOpts }), cfc('Estado', 'status', 'select', { options: statuses }),
+          cfc('Tarifa mensual (RD$)', 'fee', 'number'), cfc('Fecha de inicio', 'start', 'date'), cfc('Notas', 'notes', 'area', { rows: 4 })],
+        metaFields: [cfc('ID de Instagram Business', 'igId', 'text', { placeholder: '1784…' }), cfc('Cuenta publicitaria (act_…)', 'adAccount', 'text', { placeholder: 'act_…' }),
+          cfc('Access token del cliente (opcional)', 'token', 'password', { placeholder: 'Usa el de Ajustes si está vacío' })],
+        syncLabel: st.syncing ? 'Sincronizando…' : 'Sincronizar', syncErr: st.syncErr,
+        lastSync: snap ? 'Último sync: ' + dateFmt(snap.date) : 'Nunca sincronizado',
+        hasSnap: kpis.length > 0, noSnap: !snap, kpis, ads, hasAds: ads.length > 0, media, hasMedia: media.length > 0,
+        history, hasHistory: history.length > 1, warnings,
+        tasks: (c.tasks || []).map((t, i) => ({ ...t, deco: t.done ? 'line-through' : 'none',
+          onToggle: () => this.updC(c.id, (n) => { n.tasks[i].done = !n.tasks[i].done; }),
+          onRemove: () => this.updC(c.id, (n) => { n.tasks.splice(i, 1); }) }))
+      };
+    }
+
+    const sf = (label, key, type, placeholder) => this.field(label, st.set[key], (v) => this.setState((s) => ({ set: { ...s.set, [key]: v }, settingsMsg: '' })), type, { placeholder });
+
+    return {
+      ...lockVals, ...det,
+      tabs, tabTitle: curTab[1], tabHint: curTab[2],
+      isEditor, isClients: st.tab === 'clientes', isSettings: st.tab === 'ajustes',
+      showChips: st.tab === 'contenido', chips, group,
+      save: this.save, discard: this.discard, saveBg: st.dirty ? '#FF5A5F' : '#0B1F33', saveFg: st.dirty ? '#0B1F33' : '#FFFFFF',
+      saveStatus: st.dirty ? 'Cambios sin guardar' : st.savedAt ? 'Guardado a las ' + st.savedAt : 'Todo guardado',
+      lock: this.lock,
+      stats, filters, clientList, noClients: clientList.length === 0, search: st.search,
+      onSearch: (e) => this.setState({ search: e.target.value }),
+      addClient: this.addClient, delClient: this.delClient, sync: this.sync,
+      task: st.task, onTask: (e) => this.setState({ task: e.target.value }), onTaskKey: (e) => { if (e.key === 'Enter') this.addTask(); }, addTask: this.addTask,
+      settingsFields: [sf('Versión de la Graph API', 'apiVersion', 'text', 'v21.0'), sf('Access token por defecto (Meta)', 'defaultToken', 'password', 'EAAG…'), sf('Nuevo PIN (déjalo vacío para no cambiarlo)', 'newPin', 'password', '')],
+      saveSettings: this.saveSettings, settingsMsg: st.settingsMsg,
+      exportAll: this.exportAll, exportCsv: this.exportCsv, importAll: this.importAll, resetContent: this.resetContent
+    };
+  }
+}
+</script>
+</body>
+</html>
