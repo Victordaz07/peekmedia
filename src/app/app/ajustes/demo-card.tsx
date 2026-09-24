@@ -6,7 +6,7 @@ import type { DemoAccess } from "@/lib/demo/seed";
 import { clearDemoAction, loadDemoAction } from "./actions";
 
 /** Cargar o borrar los datos de ejemplo para enseñarle el panel al cliente. */
-export function DemoCard({ loaded, accesses }: { loaded: boolean; accesses: DemoAccess[] }) {
+export function DemoCard({ ready, loaded, accesses }: { ready: boolean; loaded: boolean; accesses: DemoAccess[] }) {
   const toast = useToast();
   const [confirm, setConfirm] = useState<"load" | "clear" | null>(null);
 
@@ -32,7 +32,11 @@ export function DemoCard({ loaded, accesses }: { loaded: boolean; accesses: Demo
         </p>
       </div>
 
-      {loaded ? (
+      {!ready ? (
+        <p className="rounded-item bg-coral-tint px-4 py-3 text-label">
+          Falta aplicar la migración <code>20260927000000_demo_clients.sql</code> en Supabase (SQL Editor). Después recarga esta página.
+        </p>
+      ) : loaded ? (
         <>
           <p className="rounded-item bg-cyan-tint px-4 py-3 text-label">
             La demostración está cargada. Entra como cliente en <strong>/login</strong>, pestaña “Soy cliente”, con estos accesos:

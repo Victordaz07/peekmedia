@@ -31,7 +31,8 @@ export default function AjustesPage() {
 
 async function Settings() {
   const user = await requireTeam();
-  const demoLoaded = user.role === "owner" && (await listDemoClientIds()).length > 0;
+  // Si todavía no se aplicó la migración de la demo (clients.is_demo), la tarjeta lo avisa en vez de romper Ajustes.
+  const demo = user.role === "owner" ? await listDemoClientIds().then((ids) => ({ ready: true, loaded: ids.length > 0 }), () => ({ ready: false, loaded: false })) : null;
   const cfg = integrations();
   const rows: { label: string; ok: boolean; env: string; help: string }[] = [
     { label: "Base de datos (Supabase)", ok: !isLocalMode(), env: "NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY", help: "Sin esto, el panel funciona en modo local." },
@@ -54,9 +55,9 @@ async function Settings() {
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
-      {user.role === "owner" && (
+      {demo && (
         <div className="lg:col-span-2">
-          <DemoCard loaded={demoLoaded} accesses={demoLoaded ? demoAccesses() : []} />
+          <DemoCard ready={demo.ready} loaded={demo.loaded} accesses={demo.loaded ? demoAccesses() : []} />
         </div>
       )}
       <Card className="gap-2">
