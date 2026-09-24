@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { normalizeAccessCode } from "@/lib/access-code";
 import { clientUserByUserId } from "@/lib/data/clients";
-import { endSession, signInWithSecret, teamRoleOf } from "@/lib/data/identity";
+import { currentSessionUser, endSession, sendTeamPasswordReset, setOwnPassword, signInWithSecret, teamRoleOf } from "@/lib/data/identity";
 import { isLocalMode, localModeAllowed } from "@/lib/env";
+import { siteUrl } from "@/lib/site";
 
 export type SignInState = { error?: string; email?: string };
 
@@ -39,4 +40,35 @@ export async function signIn(_prev: SignInState, form: FormData): Promise<SignIn
 export async function signOut() {
   await endSession();
   redirect("/login");
+}
+
+export type ResetState = { sent?: boolean; error?: string; email?: string };
+
+/** "¿Olvidaste tu contraseña?" del equipo. Siempre responde igual, exista o no el correo. */
+export async function requestPasswordReset(_prev: ResetState, form: FormData): Promise<ResetState> {
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const parsed = z.email().safeParse(email);
+  if (!parsed.success) return { error: "Escribe un correo válido", email };
+  await sendTeamPasswordReset(email, `${siteUrl}/auth/confirm?next=/login/nueva-clave`);
+  return { sent: true, email };
+}
+
+export type NewPasswordState = { error?: string };
+
+const newPassword = z
+  .object({ password: z.string().min(10, "Usa al menos 10 caracteres").max(72), confirm: z.string() })
+  .refine((v) => v.password === v.confirm, { message: "Las dos contraseñas no coinciden", path: ["confirm"] });
+
+/** Guarda la contraseña nueva de alguien del equipo que llegó por el enlace del correo. */
+export async function saveNewPassword(_prev: NewPasswordState, form: FormData): Promise<NewPasswordState> {
+  const user = await currentSessionUser();
+  if (!user || !(await teamRoleOf(user.id))) return { error: "El enlace venció. Pide otro desde la pantalla de entrar." };
+  const parsed = newPassword.safeParse({ password: String(form.get("password") ?? ""), confirm: String(form.get("confirm") ?? "") });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  try {
+    await setOwnPassword(parsed.data.password);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "No se pudo cambiar la contraseña." };
+  }
+  redirect("/app");
 }
