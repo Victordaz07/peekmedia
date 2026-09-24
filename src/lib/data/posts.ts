@@ -329,25 +329,34 @@ export async function insertPostAdmin(post: Post) {
     return;
   }
   const db = createAdminClient();
-  await db.from("posts").insert({
+  const { error } = await db.from("posts").insert({
     id: post.id,
     client_id: post.clientId,
     type: post.type,
     caption: post.caption,
+    first_comment: post.firstComment,
+    alt_text: post.altText,
     media: post.media,
     platforms: post.platforms,
     scheduled_at: post.scheduledAt,
     status: post.status,
+    version: post.version,
+    feedback: post.feedback,
     created_by_name: post.createdByName,
+    created_at: post.createdAt,
   });
-  await db.from("post_targets").insert(
+  if (error) fail("No se pudo guardar la publicación", error);
+  if (!post.targets.length) return;
+  const { error: targetsError } = await db.from("post_targets").insert(
     post.targets.map((t) => ({
       post_id: post.id,
       platform: t.platform,
       status: t.status,
       external_id: t.externalId,
+      error: t.error,
       published_at: t.publishedAt,
       metrics: t.metrics,
     })),
   );
+  if (targetsError) fail("No se pudieron guardar los destinos", targetsError);
 }
