@@ -67,7 +67,8 @@ El contenido empieza con los textos del handoff. La primera vez que guardes en `
 ### Seguridad
 
 - **RLS en todas las tablas.** Los visitantes solo pueden leer `site_content`. Solo el equipo (`is_team()`) edita el contenido y ve o cambia prospectos.
-- **Las cotizaciones no se escriben directo desde el navegador.** Las valida una server action, que recalcula los precios con el catálogo y las guarda con la clave secreta. Además tiene un campo trampa (honeypot) contra bots.
+- **Las cotizaciones no se escriben directo desde el navegador.** Las valida una server action, que recalcula los precios con el catálogo y las guarda con la clave secreta. Además tiene un campo trampa (honeypot) contra bots y un límite por visitante: 3 cada 10 minutos y 10 al día. Se cuenta por un HMAC de la IP (tabla `quote_attempts`, solo el servidor), nunca la IP, y se borra a los 2 días.
+- **Cada prospecto nuevo avisa al equipo por correo** (si Resend está configurado).
 - **El equipo solo puede cambiar el `status` de un prospecto**, por permisos a nivel de columna.
 - **Cada cliente vive aislado.** `my_client_id()` limita toda lectura a su espacio y un acceso desactivado pierde todo. Los clientes nunca ven contratos en borrador, notas ni tareas internas.
 - **Accesos.** Los crea el servidor con la clave secreta: cuenta de Auth más fila en `client_users`. Un correo pertenece a un solo cliente. El código se muestra una sola vez; si se pierde, se genera otro. Desactivar un acceso también bloquea la cuenta en Auth.
@@ -229,5 +230,3 @@ Todo lo que esté vacío o sea un placeholder (`[...]`) se oculta solo: pregunta
 - Subida de imágenes en el CMS del sitio (el editor de publicaciones ya sube a Storage).
 - Renovar tokens de YouTube, LinkedIn, etc. lo hace Ayrshare; los de Meta de página no vencen, pero si el cliente cambia su contraseña hay que reconectar (el panel lo avisa).
 - Probar con cuentas reales en cuanto Meta apruebe la app (hoy está probado con el modo demo y pruebas unitarias).
-- Límite de envíos por IP en el cotizador (rate limit).
-- Aviso por email de cada prospecto nuevo.
