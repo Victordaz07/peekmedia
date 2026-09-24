@@ -1,9 +1,14 @@
 "use server";
 
+import { headers } from "next/headers";
+import { after } from "next/server";
+import { quoteTotals } from "@/lib/content/helpers";
+import { hashVisitor } from "@/lib/crypto";
 import { getSiteContent } from "@/lib/data/content";
 import { createLead } from "@/lib/data/leads";
-import { quoteTotals } from "@/lib/content/helpers";
+import { takeQuoteAttempt } from "@/lib/data/quote-attempts";
 import { quoteSubmissionSchema } from "@/lib/leads/schema";
+import { notifyNewLead } from "@/lib/notify";
 
 export type QuoteResult = { ok: true } | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
@@ -19,6 +24,10 @@ export async function submitQuote(input: unknown): Promise<QuoteResult> {
   // Honeypot lleno: respondemos "ok" para no darle pistas al bot, pero no guardamos nada.
   if (website) return { ok: true };
 
+  if (!(await withinQuoteLimit())) {
+    return { ok: false, error: "Ya recibimos varias cotizaciones tuyas. Te respondemos por WhatsApp en un rato." };
+  }
+
   const { quoteServices } = await getSiteContent();
   const services = quoteServices
     .filter((s) => serviceIds.includes(s.id))
@@ -26,10 +35,25 @@ export async function submitQuote(input: unknown): Promise<QuoteResult> {
   const totals = quoteTotals(services);
 
   try {
-    await createLead({ name, business, notes, services, totalMonthly: totals.monthly, totalOnce: totals.once, source: "cotizador" });
+    const lead = { name, business, notes, services, totalMonthly: totals.monthly, totalOnce: totals.once, source: "cotizador" };
+    await createLead(lead);
+    after(() => notifyNewLead(lead).catch((e) => console.error("[notifyNewLead]", e)));
     return { ok: true };
   } catch (e) {
     console.error("[submitQuote]", e);
     return { ok: false, error: "No pudimos guardar tu cotización, pero igual te llegó por WhatsApp." };
+  }
+}
+
+/** Límite por visitante (hash de su IP). Si el límite falla por algo nuestro, dejamos pasar: perder un prospecto es peor. */
+async function withinQuoteLimit(): Promise<boolean> {
+  const h = await headers();
+  const ip = h.get("x-forwarded-for")?.split(",")[0].trim() || h.get("x-real-ip")?.trim();
+  if (!ip) return true;
+  try {
+    return await takeQuoteAttempt(hashVisitor(ip));
+  } catch (e) {
+    console.error("[quoteLimit]", e);
+    return true;
   }
 }

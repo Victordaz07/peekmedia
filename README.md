@@ -31,6 +31,7 @@ Sin variables de Supabase, la app corre en **modo local**: guarda en `.data/` (i
 | `/` | Sitio público con el cotizador |
 | `/privacidad`, `/terminos`, `/eliminacion-de-datos` | Páginas legales que piden Meta, TikTok y Google |
 | `/login` | Login: "Equipo Peek" (correo + contraseña) y "Soy cliente" (correo + código `XXXX-XXXX`). También se llega desde el punto coral de la "P" |
+| `/login/olvide`, `/login/nueva-clave`, `/auth/confirm` | Recuperar la contraseña del equipo por correo (los clientes piden un código nuevo) |
 | `/app` | Inicio del equipo: pendientes de todos los clientes (solicitudes, contratos sin enviar o sin firmar) y prospectos nuevos |
 | `/app/clientes` | Clientes: métricas, búsqueda, filtros y alta. Ficha con Datos, Accesos y Notas y tareas |
 | `/app/c/[id]` | Espacio del cliente. Un cliente solo puede entrar al suyo. Pestañas: Resumen (KPIs, seguidores a 90 días, redes, mejores publicaciones), Calendario, Crear (equipo), Bandeja (equipo), Aprobaciones, Reportes (con PDF), Novedades, Conectar cuentas y Plan y contrato |
@@ -58,7 +59,8 @@ Sin variables de Supabase, la app corre en **modo local**: guarda en `.data/` (i
    where u.email = 'tu@email.com' and o.name = 'Peek Media';
    ```
 5. En **Project Settings → API** copia la URL, la clave pública (*publishable* o *anon*) y la secreta (*secret* o *service_role*) a `.env.local`. En Vercel, ponlas en **Settings → Environment Variables**.
-6. Opcional: `RESEND_API_KEY` y `MAIL_FROM` para mandar por correo las invitaciones y los avisos de contrato. Sin ellas, el panel muestra el texto para copiarlo y mandarlo por WhatsApp.
+6. En **Authentication → URL Configuration**, pon tu dominio en **Site URL** (`https://tu-dominio.com`) y agrega `https://tu-dominio.com/**` en **Redirect URLs**. Sin esto, el enlace de "¿Olvidaste tu contraseña?" lleva a `localhost`. El correo integrado de Supabase manda pocos correos por hora; para más, configura el SMTP de Resend en **Authentication → Emails → SMTP Settings**.
+7. Opcional: `RESEND_API_KEY` y `MAIL_FROM` para mandar por correo las invitaciones y los avisos de contrato. Sin ellas, el panel muestra el texto para copiarlo y mandarlo por WhatsApp.
 
 Los códigos de acceso de los clientes son su contraseña de Supabase Auth (8 caracteres, letras mayúsculas y números). Si activas requisitos de contraseña más estrictos en **Authentication → Policies** (por ejemplo, exigir minúsculas), las invitaciones van a fallar.
 
@@ -67,7 +69,8 @@ El contenido empieza con los textos del handoff. La primera vez que guardes en `
 ### Seguridad
 
 - **RLS en todas las tablas.** Los visitantes solo pueden leer `site_content`. Solo el equipo (`is_team()`) edita el contenido y ve o cambia prospectos.
-- **Las cotizaciones no se escriben directo desde el navegador.** Las valida una server action, que recalcula los precios con el catálogo y las guarda con la clave secreta. Además tiene un campo trampa (honeypot) contra bots.
+- **Las cotizaciones no se escriben directo desde el navegador.** Las valida una server action, que recalcula los precios con el catálogo y las guarda con la clave secreta. Además tiene un campo trampa (honeypot) contra bots y un límite por visitante: 3 cada 10 minutos y 10 al día. Se cuenta por un HMAC de la IP (tabla `quote_attempts`, solo el servidor), nunca la IP, y se borra a los 2 días.
+- **Cada prospecto nuevo avisa al equipo por correo** (si Resend está configurado).
 - **El equipo solo puede cambiar el `status` de un prospecto**, por permisos a nivel de columna.
 - **Cada cliente vive aislado.** `my_client_id()` limita toda lectura a su espacio y un acceso desactivado pierde todo. Los clientes nunca ven contratos en borrador, notas ni tareas internas.
 - **Accesos.** Los crea el servidor con la clave secreta: cuenta de Auth más fila en `client_users`. Un correo pertenece a un solo cliente. El código se muestra una sola vez; si se pierde, se genera otro. Desactivar un acceso también bloquea la cuenta en Auth.
@@ -229,5 +232,3 @@ Todo lo que esté vacío o sea un placeholder (`[...]`) se oculta solo: pregunta
 - Subida de imágenes en el CMS del sitio (el editor de publicaciones ya sube a Storage).
 - Renovar tokens de YouTube, LinkedIn, etc. lo hace Ayrshare; los de Meta de página no vencen, pero si el cliente cambia su contraseña hay que reconectar (el panel lo avisa).
 - Probar con cuentas reales en cuanto Meta apruebe la app (hoy está probado con el modo demo y pruebas unitarias).
-- Límite de envíos por IP en el cotizador (rate limit).
-- Aviso por email de cada prospecto nuevo.

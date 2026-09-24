@@ -14,14 +14,8 @@ export function LoginCard({ mode, localTeam }: { mode: Mode; localTeam: { email:
   const params = useSearchParams();
   const [kind, setKind] = useState<Kind>(params.get("cliente") ? "client" : "team");
   return (
-    <div className="flex w-full max-w-[440px] flex-col gap-6 rounded-lg bg-surface p-[clamp(24px,6vw,40px)] shadow-elevated">
-      <Link href="/" aria-label="Volver al sitio" className="self-start rounded-sm">
-        <Logo className="h-10" priority />
-      </Link>
-      <div className="flex flex-col gap-2">
-        <h1 className="font-display text-h1 font-bold tracking-[-0.03em]">Entra a Peek</h1>
-        <p className="text-label text-muted">Tu espacio para crear, aprobar y medir.</p>
-      </div>
+    <AuthCard title="Entra a Peek" subtitle="Tu espacio para crear, aprobar y medir.">
+      {params.get("enlace") === "vencido" && <Notice>Ese enlace venció o ya se usó. Pide otro con “¿Olvidaste tu contraseña?”.</Notice>}
       <Segmented
         label="Tipo de acceso"
         value={kind}
@@ -35,13 +29,29 @@ export function LoginCard({ mode, localTeam }: { mode: Mode; localTeam: { email:
       {mode === "unconfigured" ? (
         <Notice>Falta configurar Supabase en el servidor (NEXT_PUBLIC_SUPABASE_URL y la clave pública).</Notice>
       ) : (
-        <LoginForm key={kind} kind={kind} localTeam={kind === "team" ? localTeam : null} />
+        <LoginForm key={kind} kind={kind} localTeam={kind === "team" ? localTeam : null} canRecover={mode === "supabase" && kind === "team"} />
       )}
+    </AuthCard>
+  );
+}
+
+/** Tarjeta de las pantallas de acceso (entrar, recuperar y cambiar la contraseña). */
+export function AuthCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+  return (
+    <div className="flex w-full max-w-[440px] flex-col gap-6 rounded-lg bg-surface p-[clamp(24px,6vw,40px)] shadow-elevated">
+      <Link href="/" aria-label="Volver al sitio" className="self-start rounded-sm">
+        <Logo className="h-10" priority />
+      </Link>
+      <div className="flex flex-col gap-2">
+        <h1 className="font-display text-h1 font-bold tracking-[-0.03em]">{title}</h1>
+        <p className="text-label text-muted">{subtitle}</p>
+      </div>
+      {children}
     </div>
   );
 }
 
-function LoginForm({ kind, localTeam }: { kind: Kind; localTeam: { email: string; password: string } | null }) {
+function LoginForm({ kind, localTeam, canRecover }: { kind: Kind; localTeam: { email: string; password: string } | null; canRecover: boolean }) {
   const [state, action, pending] = useActionState<SignInState, FormData>(signIn, {});
   const client = kind === "client";
   return (
@@ -81,11 +91,16 @@ function LoginForm({ kind, localTeam }: { kind: Kind; localTeam: { email: string
           ¿No tienes código? Escríbenos
         </ButtonLink>
       )}
+      {canRecover && (
+        <ButtonLink href="/login/olvide" variant="ghost" size="sm" className="self-center">
+          ¿Olvidaste tu contraseña?
+        </ButtonLink>
+      )}
     </form>
   );
 }
 
-function Notice({ children }: { children: React.ReactNode }) {
+export function Notice({ children }: { children: React.ReactNode }) {
   return (
     <p className="flex gap-3 rounded-item bg-cyan-tint p-4 text-label">
       <Info aria-hidden className="mt-0.5 size-4 shrink-0" />

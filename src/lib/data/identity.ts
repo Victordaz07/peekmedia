@@ -182,3 +182,30 @@ export async function listTeamEmails(): Promise<string[]> {
   const { data } = await admin.from("profiles").select("email").in("id", members.map((m) => m.user_id));
   return (data ?? []).map((p) => p.email).filter(Boolean);
 }
+
+/**
+ * Manda el enlace para elegir una contraseña nueva. Solo a correos del equipo: los clientes
+ * entran con un código que les cambia su community manager. No dice si el correo existe.
+ */
+export async function sendTeamPasswordReset(email: string, redirectTo: string): Promise<void> {
+  if (isLocalMode()) return;
+  if (!(await listTeamEmails()).includes(email)) return;
+  const { error } = await (await createSessionClient()).auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) console.error("[sendTeamPasswordReset]", error.message);
+}
+
+/** Abre la sesión con el enlace del correo (código PKCE o token_hash). Devuelve false si venció o ya se usó. */
+export async function openSessionFromEmailLink(link: { code?: string | null; tokenHash?: string | null; type?: string | null }): Promise<boolean> {
+  if (isLocalMode()) return false;
+  const supabase = await createSessionClient();
+  if (link.code) return !(await supabase.auth.exchangeCodeForSession(link.code)).error;
+  if (link.tokenHash && link.type === "recovery") return !(await supabase.auth.verifyOtp({ type: "recovery", token_hash: link.tokenHash })).error;
+  return false;
+}
+
+/** Cambia la contraseña de quien tiene la sesión abierta. */
+export async function setOwnPassword(password: string): Promise<void> {
+  if (isLocalMode()) throw new Error("En modo local la contraseña del equipo es fija.");
+  const { error } = await (await createSessionClient()).auth.updateUser({ password });
+  if (error) throw new Error(/different|same/i.test(error.message) ? "Usa una contraseña distinta a la anterior." : `No se pudo cambiar: ${error.message}`);
+}

@@ -47,3 +47,8 @@ export function verifySigned(token: string): string | null {
   if (expected.length !== mac.length || !timingSafeEqual(Buffer.from(expected), Buffer.from(mac))) return null;
   return payload;
 }
+
+/** HMAC de un dato del visitante (su IP) para contar intentos sin guardar el dato. */
+export function hashVisitor(value: string): string {
+  return createHmac("sha256", key()).update(`visitor:${value}`).digest("base64url");
+}
