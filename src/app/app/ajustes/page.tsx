@@ -5,9 +5,15 @@ import { Card, CardTitle, LoadingState } from "@/components/ui";
 import { requireTeam } from "@/lib/auth";
 import { isLocalMode } from "@/lib/env";
 import { integrations, oauthRedirect } from "@/lib/integrations/config";
+import { listDemoClientIds } from "@/lib/data/demo";
+import { demoAccesses } from "@/lib/demo/seed";
 import { siteUrl } from "@/lib/site";
+import { DemoCard } from "./demo-card";
 
 export const metadata: Metadata = { title: "Ajustes" };
+
+// Cargar la demostración crea varios clientes con 90 días de métricas: puede tardar más que una acción normal.
+export const maxDuration = 120;
 
 export default function AjustesPage() {
   return (
@@ -24,7 +30,9 @@ export default function AjustesPage() {
 }
 
 async function Settings() {
-  await requireTeam();
+  const user = await requireTeam();
+  // Si todavía no se aplicó la migración de la demo (clients.is_demo), la tarjeta lo avisa en vez de romper Ajustes.
+  const demo = user.role === "owner" ? await listDemoClientIds().then((ids) => ({ ready: true, loaded: ids.length > 0 }), () => ({ ready: false, loaded: false })) : null;
   const cfg = integrations();
   const rows: { label: string; ok: boolean; env: string; help: string }[] = [
     { label: "Base de datos (Supabase)", ok: !isLocalMode(), env: "NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY", help: "Sin esto, el panel funciona en modo local." },
@@ -47,6 +55,11 @@ async function Settings() {
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
+      {demo && (
+        <div className="lg:col-span-2">
+          <DemoCard ready={demo.ready} loaded={demo.loaded} accesses={demo.loaded ? demoAccesses() : []} />
+        </div>
+      )}
       <Card className="gap-2">
         <CardTitle>Integraciones</CardTitle>
         <ul className="flex flex-col divide-y divide-hairline">

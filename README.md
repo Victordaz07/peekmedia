@@ -136,6 +136,20 @@ El contenido empieza con los textos del handoff. La primera vez que guardes en `
 5. **Tareas programadas:** `vercel.json` está listo para el plan **Hobby**, que solo permite tareas diarias: publica una vez al día (6:00 a. m. en RD) como respaldo. Para que lo programado salga a su hora, crea una tarea gratis en [cron-job.org](https://cron-job.org) que llame cada 10 minutos a `https://TU-DOMINIO/api/cron/publish` con el encabezado `Authorization: Bearer TU_CRON_SECRET`. Si pasas a **Pro**, cambia en `vercel.json` el horario de `/api/cron/publish` a `*/10 * * * *` y ya no necesitas el servicio externo.
 6. Entra a `/app/ajustes` para ver qué integraciones quedaron activas.
 
+## Datos de demostración
+
+Para enseñar el panel funcionando antes de tener clientes reales, el dueño de la cuenta puede ir a **Ajustes → Datos de demostración → Cargar la demostración**. Se crean los tres clientes del prototipo:
+
+| Cliente | Qué muestra | Accesos (pestaña "Soy cliente") |
+|---|---|---|
+| Café Colonial | Plan Básico **firmado**, pagos al día, 6 redes | `cafe@demo.do` · `CAFE-2026` (Administrador) |
+| Clínica Sonrisa | Plan Estratégico **por firmar** | `clinica@demo.do` · `SONR-2026` (Administrador), `recepcion@demo.do` · `RECP-2026` (Solo lectura) |
+| Torre Mar Residences | Plan Estratégico firmado con extra y **solicitud de Premium** | `direccion.torre@demo.do` · `TMAR-2026` (Administrador), `torre@demo.do` · `TORR-2026` (Aprobador) |
+
+Cada uno trae redes en modo demo con 90 días de métricas, audiencia, bandeja (comentarios, mensajes y reseñas), publicaciones en todos los estados (publicadas, programadas, por aprobar, con cambios pedidos y borrador), notas, tareas y novedades. También se crean tres prospectos de ejemplo.
+
+**Borrar la demostración** quita todo eso de una vez, incluidas sus firmas de prueba. Los clientes de ejemplo quedan marcados con `clients.is_demo` (migración `20260927000000_demo_clients.sql`). Solo el servidor puede poner esa marca, y el trigger de firmas solo deja borrar las de esos clientes: las firmas de clientes reales siguen siendo inmutables.
+
 ## Estructura
 
 ```
