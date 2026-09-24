@@ -6,8 +6,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * La autorización real se hace en el servidor (requireTeam) y en la base de datos (RLS).
  */
 export async function proxy(request: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/+$/, "");
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
   if (!url || !key) return NextResponse.next();
 
   let response = NextResponse.next({ request });
