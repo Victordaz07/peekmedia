@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Check, Copy, KeyRound, Mail, Trash2, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -14,7 +15,6 @@ import {
   Field,
   Input,
   Modal,
-  Segmented,
   Select,
   StatusBadge,
   Textarea,
@@ -51,28 +51,22 @@ export function ClientFicha({
   tasks: Task[];
   initialTab: Tab;
 }) {
-  const [tab, setTab] = useState<Tab>(initialTab);
   const { id, createdAt, ...input } = client;
   return (
     <div className="flex flex-col gap-5">
-      <Segmented
-        label="Secciones de la ficha"
-        value={tab}
-        onChange={setTab}
-        className="self-start"
-        options={[
-          { value: "data", label: "Datos" },
-          { value: "access", label: "Accesos", badge: users.length || undefined },
-          { value: "crm", label: "Notas y tareas" },
-        ]}
-      />
-      {tab === "data" && (
-        <Card padding="lg">
-          <ClientForm key={createdAt} clientId={id} initial={input} />
-        </Card>
-      )}
-      {tab === "access" && <AccessPanel client={client} users={users} />}
-      {tab === "crm" && <CrmPanel clientId={id} notes={notes} tasks={tasks} />}
+      <section className="flex flex-col gap-5 rounded-md bg-surface p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-h2 font-bold">{client.name}</h2>
+          <Link href={`/app/c/${id}`} className="rounded-full bg-sand px-4 py-2 text-label font-semibold hover:bg-[#b0b0b0]">
+            Abrir su espacio →
+          </Link>
+        </div>
+        <ClientForm key={createdAt} clientId={id} initial={input} />
+      </section>
+      <div id="accesos" className={initialTab === "access" ? "scroll-mt-6" : undefined}>
+        <AccessPanel client={client} users={users} />
+      </div>
+      <CrmPanel clientId={id} notes={notes} tasks={tasks} />
     </div>
   );
 }

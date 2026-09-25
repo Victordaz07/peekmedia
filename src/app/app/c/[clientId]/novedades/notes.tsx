@@ -14,7 +14,7 @@ export function NoteComposer({ clientId }: { clientId: string }) {
   const [pending, start] = useTransition();
   return (
     <form
-      className="flex flex-col gap-2"
+      className="flex flex-wrap items-center gap-4 rounded-md bg-surface p-5"
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
@@ -27,10 +27,10 @@ export function NoteComposer({ clientId }: { clientId: string }) {
         });
       }}
     >
-      <Field label="Nueva nota para el cliente" error={error ?? undefined}>
-        <Textarea rows={3} value={text} onChange={(e) => setText(e.target.value)} placeholder="Ej. Este mes probamos reels con recetas: el alcance subió 18%." />
+      <Field label={<span className="sr-only">Nota para el cliente</span>} error={error ?? undefined} className="min-w-0 flex-1 basis-[320px]">
+        <Textarea rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder="Deja una nota para el cliente (ej. “Esta semana probamos reels de 15 s”)" />
       </Field>
-      <Button type="submit" size="sm" variant="dark" loading={pending} disabled={!text.trim()} className="self-start">
+      <Button type="submit" variant="dark" loading={pending} disabled={!text.trim()}>
         Publicar nota
       </Button>
     </form>

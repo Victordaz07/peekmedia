@@ -1,7 +1,7 @@
 import { Check, X } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Card, LoadingState, NetworkDot } from "@/components/ui";
+import { LoadingState, NetworkDot } from "@/components/ui";
 import { requireTeam } from "@/lib/auth";
 import { networks } from "@/lib/design/tokens";
 import { capabilities, providerOf } from "@/lib/social/platforms";
@@ -27,42 +27,38 @@ export default function ConexionesPage() {
 async function Matrix() {
   await requireTeam();
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-4">
       {capabilities.map((c) => (
-        <Card key={c.id} className="gap-4">
+        <section key={c.id} className="flex flex-col gap-4 rounded-md bg-surface p-5">
           <div className="flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 font-display text-h3 font-bold">
               <NetworkDot network={c.id} className="size-3" />
               {networks[c.id].label}
             </h2>
-            <span className="rounded-full bg-hairline px-3 py-1 text-caption font-semibold">{providerOf[c.id] === "meta" ? "API de Meta" : "Ayrshare"}</span>
+            <span className="shrink-0 rounded-full bg-sand px-2.5 py-1 text-eyebrow font-bold">{providerOf[c.id] === "meta" ? "API de Meta" : "Ayrshare"}</span>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <List title="Se puede" items={c.can} ok />
-            <List title="No se puede" items={c.cannot} />
-          </div>
-          <p className="rounded-item bg-hairline/60 px-4 py-3 text-caption">
+          <List items={c.can} ok label="Se puede" />
+          <hr className="border-hairline" />
+          <List items={c.cannot} label="No se puede" />
+          <p className="mt-auto rounded-item bg-sand px-3 py-2.5 text-eyebrow leading-[1.45]">
             <strong>Requisitos:</strong> {c.req}
           </p>
-        </Card>
+        </section>
       ))}
     </div>
   );
 }
 
-function List({ title, items, ok }: { title: string; items: string[]; ok?: boolean }) {
+function List({ items, ok, label }: { items: string[]; ok?: boolean; label: string }) {
   const Icon = ok ? Check : X;
   return (
-    <div className="flex flex-col gap-2">
-      <h3 className="text-eyebrow font-bold tracking-[0.12em] text-muted uppercase">{title}</h3>
-      <ul className="flex flex-col gap-1.5 text-label">
-        {items.map((i) => (
-          <li key={i} className="flex items-start gap-2">
-            <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
-            {i}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <ul aria-label={label} className="flex flex-col gap-2 text-label">
+      {items.map((i) => (
+        <li key={i} className="flex items-start gap-2">
+          <Icon aria-hidden className={ok ? "mt-0.5 size-4 shrink-0 text-cyan" : "mt-0.5 size-4 shrink-0 text-coral-strong"} />
+          {i}
+        </li>
+      ))}
+    </ul>
   );
 }

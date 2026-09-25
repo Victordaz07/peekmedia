@@ -1,26 +1,23 @@
-import { LogOut } from "lucide-react";
 import { signOut } from "@/app/login/actions";
-import { Avatar, Button, Skeleton } from "@/components/ui";
+import { Skeleton } from "@/components/ui";
 import type { Viewer } from "@/lib/auth";
 import { clientRoleLabel } from "@/lib/clients/schema";
 
-const teamRoleLabel = { owner: "Administrador · Peek", cm: "Community manager" } as const;
+const teamRoleLabel = { owner: "Administrador · Peek", cm: "Community manager · Peek" } as const;
 
+/** Quién está conectado y "Salir", como la tarjeta del prototipo. */
 export function UserCard({ viewer }: { viewer: Viewer }) {
   const role = viewer.kind === "team" ? teamRoleLabel[viewer.role] : clientRoleLabel[viewer.role];
   return (
-    <div className="flex items-center gap-3 rounded-md bg-surface p-3 ring-1 ring-hairline lg:flex-col lg:items-stretch lg:p-4">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <Avatar name={viewer.name || viewer.email} size="sm" color={viewer.kind === "team" ? "cyan" : "ocean"} />
-        <div className="min-w-0 leading-tight">
-          <p className="truncate text-label font-bold">{viewer.name || viewer.email}</p>
-          <p className="truncate text-caption text-muted">{role}</p>
-        </div>
+    <div className="flex items-center justify-between gap-2 rounded-item border-[1.5px] border-hairline bg-surface px-3 py-2.5">
+      <div className="flex min-w-0 flex-col leading-[1.3]">
+        <span className="truncate text-caption font-bold">{viewer.name || viewer.email}</span>
+        <span className="truncate text-eyebrow">{role}</span>
       </div>
       <form action={signOut}>
-        <Button type="submit" variant="secondary" size="sm" className="lg:w-full" iconLeft={<LogOut className="size-4" />}>
+        <button type="submit" className="rounded-full bg-sand px-2.5 py-[7px] text-eyebrow font-semibold whitespace-nowrap transition-colors hover:bg-[#b0b0b0]">
           Salir
-        </Button>
+        </button>
       </form>
     </div>
   );
@@ -29,8 +26,8 @@ export function UserCard({ viewer }: { viewer: Viewer }) {
 export function SidebarSkeleton() {
   return (
     <div className="flex flex-col gap-2">
-      {[0, 1, 2].map((i) => (
-        <Skeleton key={i} className="h-10 w-full rounded-item" />
+      {[0, 1, 2, 3].map((i) => (
+        <Skeleton key={i} className="h-11 w-full rounded-sm" />
       ))}
     </div>
   );

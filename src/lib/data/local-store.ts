@@ -1,6 +1,7 @@
 import "server-only";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 
 // Almacén de archivos para el modo local (sin Supabase). No apto para producción ni para Vercel.
 const dir = path.join(process.cwd(), ".data");
@@ -13,12 +14,20 @@ export async function readJson<T>(name: string): Promise<T | null> {
   }
 }
 
+// Escrituras en fila por archivo: dos escrituras a la vez sobre el mismo temporal lo corrompían.
+const queues = new Map<string, Promise<void>>();
+
 export async function writeJson(name: string, value: unknown) {
-  await mkdir(dir, { recursive: true });
   const file = path.join(dir, `${name}.json`);
-  const tmp = `${file}.${process.pid}.tmp`;
-  await writeFile(tmp, JSON.stringify(value, null, 2));
-  await rename(tmp, file);
+  const run = async () => {
+    await mkdir(dir, { recursive: true });
+    const tmp = `${file}.${process.pid}.${randomUUID()}.tmp`;
+    await writeFile(tmp, JSON.stringify(value, null, 2));
+    await rename(tmp, file);
+  };
+  const next = (queues.get(file) ?? Promise.resolve()).then(run, run);
+  queues.set(file, next);
+  await next;
 }
 
 /** Tabla local mínima sobre un archivo JSON (solo modo local). */
