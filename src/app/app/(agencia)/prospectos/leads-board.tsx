@@ -26,11 +26,12 @@ import { leadStatus } from "@/lib/design/tokens";
 import { formatDateTimeRD } from "@/lib/format";
 import { leadStatuses, type Lead, type LeadStatus } from "@/lib/leads/schema";
 import { updateLeadStatus } from "./actions";
+import { LeadAssist } from "./lead-assist";
 
 type Filter = "all" | LeadStatus;
 
 
-export function LeadsBoard({ initial }: { initial: Lead[] }) {
+export function LeadsBoard({ initial, aiReady }: { initial: Lead[]; aiReady: boolean }) {
   const toast = useToast();
   const [leads, setLeads] = useState(initial);
   const [filter, setFilter] = useState<Filter>("all");
@@ -213,6 +214,7 @@ export function LeadsBoard({ initial }: { initial: Lead[] }) {
               <h3 className="text-eyebrow font-bold tracking-[0.12em] text-muted uppercase">Lo que nos contó</h3>
               <p className="text-body whitespace-pre-line">{open.notes || <span className="text-muted">Sin notas.</span>}</p>
             </section>
+            <LeadAssist key={open.id} leadId={open.id} ready={aiReady} />
             <ButtonLink
               href={`/app/clientes/nuevo?${new URLSearchParams({ negocio: open.business || open.name, contacto: open.name })}`}
               variant="dark"

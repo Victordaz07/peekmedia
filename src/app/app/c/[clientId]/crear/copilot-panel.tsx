@@ -16,11 +16,16 @@ type Key = "caption" | "tagsComment" | "tagsCaption" | "firstComment" | "altText
 /** Copiloto de Claude: revisa el borrador con el contexto de la cuenta y deja aplicar cada sugerencia por separado. */
 export function CopilotPanel({
   clientId,
+  postId,
+  feedback,
   ready,
   draft,
   onApply,
 }: {
   clientId: string;
+  postId: string | null;
+  /** Cambios que pidió el cliente sobre esta publicación: Claude los aplica primero. */
+  feedback: string | null;
   ready: boolean;
   draft: Omit<CopilotInput, "brief">;
   onApply: (patch: CopilotPatch) => void;
@@ -30,12 +35,12 @@ export function CopilotPanel({
   const [applied, setApplied] = useState<Set<Key>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const empty = !draft.caption.trim() && !brief.trim();
+  const empty = !draft.caption.trim() && !brief.trim() && !feedback;
 
   function review() {
     setError(null);
     start(async () => {
-      const res = await reviewDraftAction(clientId, { ...draft, brief });
+      const res = await reviewDraftAction(clientId, postId, { ...draft, brief });
       if (!res.ok) return setError(res.error);
       setResult(res.suggestion);
       setApplied(new Set());
@@ -54,8 +59,9 @@ export function CopilotPanel({
           <span className="text-caption font-bold">¿Qué quieres lograr? (opcional)</span>
           <Textarea rows={2} value={brief} onChange={(e) => setBrief(e.target.value)} maxLength={1000} placeholder="Ej. llenar las reservas del viernes, tono más juvenil, anunciar el 2×1" />
         </label>
+        {feedback && <p className="rounded-item bg-coral-tint px-3 py-2 text-caption">Claude va a reescribirla aplicando lo que pidió el cliente, sin perder lo que ya funcionaba.</p>}
         <Button variant="dark" iconLeft={<Sparkles aria-hidden className="size-4" />} loading={pending} disabled={!ready || empty} onClick={review}>
-          Revisar con Claude
+          {feedback ? "Reescribir según el cliente" : "Revisar con Claude"}
         </Button>
         {pending && <p className="text-caption">Claude está leyendo la cuenta y buscando tendencias. Suele tardar entre 30 y 90 segundos.</p>}
         {!ready && <p className="rounded-item bg-hairline px-3 py-2 text-caption">Para activarlo falta la clave de Claude en Vercel (ANTHROPIC_API_KEY).</p>}

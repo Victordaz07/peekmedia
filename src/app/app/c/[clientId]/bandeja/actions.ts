@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireTeam } from "@/lib/auth";
+import { runAI } from "@/lib/ai/claude";
+import { suggestReply } from "@/lib/ai/assist";
+import type { ReplySuggestion } from "@/lib/ai/schemas";
+import { getClient } from "@/lib/data/clients";
 import { getInboxItem, markReplied } from "@/lib/data/insights";
 import { getAccountWithSecrets, getProfileKey } from "@/lib/data/social";
 import { replyAyrshare } from "@/lib/integrations/ayrshare";
@@ -36,4 +40,13 @@ export async function replyAction(itemId: string, text: string): Promise<Result>
   await markReplied(item.id, body.data, user.name);
   revalidatePath(`/app/c/${item.clientId}/bandeja`);
   return { ok: true };
+}
+
+/** "Sugerir con Claude": borrador de respuesta con la voz de la marca (equipo). No envía nada. */
+export async function suggestReplyAction(itemId: string): Promise<{ ok: true; data: ReplySuggestion } | { ok: false; error: string }> {
+  await requireTeam();
+  const item = z.string().min(1).max(64).safeParse(itemId).success ? await getInboxItem(itemId) : null;
+  const client = item ? await getClient(item.clientId) : null;
+  if (!item || !client) return { ok: false, error: "Ese mensaje no existe." };
+  return runAI("bandeja", () => suggestReply(client, item));
 }

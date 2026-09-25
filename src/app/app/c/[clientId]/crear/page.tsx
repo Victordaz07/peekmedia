@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { LoadingState } from "@/components/ui";
-import { copilotReady } from "@/lib/ai/copilot";
+import { aiReady } from "@/lib/ai/claude";
 import { getPost, listPosts } from "@/lib/data/posts";
 import { listAccounts } from "@/lib/data/social";
 import { bestTime, heatmap } from "@/lib/social/analytics";
@@ -41,7 +41,7 @@ async function Crear({ params, searchParams }: Pick<PageProps<"/app/c/[clientId]
       best={bestTime(heatmap(posts).grid)}
       post={post}
       date={fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? fecha : null}
-      aiReady={copilotReady()}
+      aiReady={aiReady()}
     />
   );
 }
