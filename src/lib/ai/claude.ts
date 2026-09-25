@@ -58,7 +58,8 @@ export async function ask<S extends z.ZodType>(opts: {
         type: "web_search_20260209",
         name: "web_search",
         max_uses: opts.webSearch,
-        user_location: { type: "approximate", country: "DO", city: "Santo Domingo", timezone: "America/Santo_Domingo" },
+        // Sin país: la búsqueda web no acepta "DO". La zona horaria basta para ubicarla en RD.
+        user_location: { type: "approximate", timezone: "America/Santo_Domingo" },
       });
     }
     return {

@@ -68,3 +68,18 @@ export type ClientUser = {
 
 export type Note = { id: string; clientId: string; text: string; by: string; at: string };
 export type Task = { id: string; clientId: string; text: string; done: boolean; createdAt: string };
+
+/** Cliente nuevo en blanco. Aquí y no en el formulario ("use client"): el servidor lo copia para prellenar desde un prospecto. */
+export const emptyClient: ClientInput = {
+  name: "",
+  industry: "",
+  handle: "",
+  avatarColor: "ocean",
+  platforms: ["instagram", "facebook"],
+  contactName: "",
+  contactEmail: "",
+  contactPhone: "",
+  taxId: "",
+  status: "active",
+  fee: null,
+};
