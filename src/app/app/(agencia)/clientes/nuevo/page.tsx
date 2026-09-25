@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ButtonLink, Card, LoadingState } from "@/components/ui";
 import { requireTeam } from "@/lib/auth";
-import { ClientForm, emptyClient } from "../client-form";
+import { emptyClient } from "@/lib/clients/schema";
+import { ClientForm } from "../client-form";
 
 export const metadata: Metadata = { title: "Nuevo cliente" };
 

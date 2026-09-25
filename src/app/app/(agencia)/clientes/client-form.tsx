@@ -10,20 +10,6 @@ import { createClientAction, updateClientAction, type ActionResult } from "./act
 
 const colorLabel: Record<AvatarColor, string> = { coral: "Coral", cyan: "Cian", ink: "Tinta", ocean: "Océano" };
 
-export const emptyClient: ClientInput = {
-  name: "",
-  industry: "",
-  handle: "",
-  avatarColor: "ocean",
-  platforms: ["instagram", "facebook"],
-  contactName: "",
-  contactEmail: "",
-  contactPhone: "",
-  taxId: "",
-  status: "active",
-  fee: null,
-};
-
 /** Datos del cliente: sirve para crear el espacio y para editarlo desde la ficha. */
 export function ClientForm({ initial, clientId }: { initial: ClientInput; clientId?: string }) {
   const toast = useToast();
