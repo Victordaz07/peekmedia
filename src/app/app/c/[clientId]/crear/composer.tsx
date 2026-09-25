@@ -4,7 +4,7 @@ import { ImagePlus, TriangleAlert, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { PostPreview } from "@/components/posts/post-preview";
-import { Button, Field, Input, NetworkChip, Spinner, Textarea, useToast } from "@/components/ui";
+import { Button, Field, Input, NetworkChip, Segmented, Spinner, Textarea, useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { networks as netTokens, type Network } from "@/lib/design/tokens";
 import { fromRDInput, toRDInput, ymdRD } from "@/lib/format";
@@ -12,6 +12,7 @@ import { composerNote, postTypeLabel, postTypes, type PostType } from "@/lib/soc
 import type { ConnectionMode, MediaItem, Post, PostInput } from "@/lib/social/schema";
 import { validatePost, type Intent } from "@/lib/social/validate";
 import { createUploadAction, savePostAction } from "../post-actions";
+import { CopilotPanel, type CopilotPatch } from "./copilot-panel";
 
 const ACCEPT = "image/jpeg,image/png,image/webp,video/mp4,video/quicktime";
 
@@ -23,6 +24,7 @@ export function Composer({
   best,
   post,
   date,
+  aiReady,
 }: {
   clientId: string;
   handle: string;
@@ -31,6 +33,7 @@ export function Composer({
   best: string | null;
   post: Post | null;
   date: string | null;
+  aiReady: boolean;
 }) {
   const toast = useToast();
   const router = useRouter();
@@ -46,11 +49,21 @@ export function Composer({
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const [busy, setBusy] = useState<Intent | null>(null);
+  const [side, setSide] = useState<"claude" | "preview">("claude");
 
   const input: PostInput = { type, caption, firstComment, altText, media, platforms, scheduledAt: fromRDInput(when) };
   const scheduleProblem = validatePost(input, "schedule");
   const notConnected = platforms.filter((p) => !connected[p]);
   const manual = platforms.filter((p) => connected[p] === "manual");
+
+  function applySuggestion(p: CopilotPatch) {
+    if (p.caption !== undefined) setCaption(p.caption);
+    if (p.firstComment !== undefined) setFirstComment(p.firstComment);
+    if (p.altText !== undefined) setAltText(p.altText);
+    if (p.type) setType(p.type);
+    if (p.when) setWhen(p.when);
+    setError(null);
+  }
 
   function toggle(n: Network) {
     setPlatforms((cur) => (cur.includes(n) ? cur.filter((x) => x !== n) : [...cur, n]));
@@ -224,7 +237,7 @@ export function Composer({
           <Field label="Fecha y hora" className="w-full max-w-[300px]">
             <Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
           </Field>
-          {best && <p className="max-w-[260px] pb-2 text-caption">Mejor momento según tu audiencia: {best}.</p>}
+          {best && <p className="max-w-[260px] pb-2 text-caption">Mejor momento según tu audiencia: {best}</p>}
         </div>
         {error && (
           <p role="alert" className="flex items-start gap-2 text-label font-semibold text-coral-strong">
@@ -249,9 +262,29 @@ export function Composer({
         <p className="text-caption text-muted">“Enviar a aprobación” le avisa al cliente por correo; cuando apruebe, se programa sola para esta fecha.</p>
       </section>
 
-      <div className="flex flex-col gap-2.5 xl:sticky xl:top-6">
-        <span className="text-caption font-semibold">Vista previa</span>
-        <PostPreview handle={handle} type={type} caption={caption} media={media} />
+      <div className="flex flex-col gap-3">
+        <Segmented
+          label="Panel lateral"
+          value={side}
+          onChange={setSide}
+          options={[
+            { value: "claude", label: "Copiloto Claude" },
+            { value: "preview", label: "Vista previa" },
+          ]}
+          className="self-start"
+        />
+        {/* Los dos quedan montados para no perder la propuesta al cambiar de pestaña. */}
+        <div className={cn(side !== "claude" && "hidden")}>
+          <CopilotPanel
+            clientId={clientId}
+            ready={aiReady}
+            draft={{ type, caption, firstComment, altText, platforms, scheduledAt: input.scheduledAt, media: media.map((m) => ({ url: m.url, mime: m.mime })) }}
+            onApply={applySuggestion}
+          />
+        </div>
+        <div className={cn("xl:sticky xl:top-6", side !== "preview" && "hidden")}>
+          <PostPreview handle={handle} type={type} caption={caption} media={media} />
+        </div>
       </div>
     </div>
   );
