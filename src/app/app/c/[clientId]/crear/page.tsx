@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { LoadingState } from "@/components/ui";
+import { copilotReady } from "@/lib/ai/copilot";
 import { getPost, listPosts } from "@/lib/data/posts";
 import { listAccounts } from "@/lib/data/social";
 import { bestTime, heatmap } from "@/lib/social/analytics";
@@ -9,6 +10,9 @@ import { space } from "../space";
 import { Composer } from "./composer";
 
 export const metadata: Metadata = { title: "Crear publicación" };
+
+/** El copiloto de Claude investiga y escribe: puede tardar más de un minuto. */
+export const maxDuration = 300;
 
 export default function CrearPage({ params, searchParams }: PageProps<"/app/c/[clientId]/crear">) {
   return (
@@ -37,6 +41,7 @@ async function Crear({ params, searchParams }: Pick<PageProps<"/app/c/[clientId]
       best={bestTime(heatmap(posts).grid)}
       post={post}
       date={fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? fecha : null}
+      aiReady={copilotReady()}
     />
   );
 }
