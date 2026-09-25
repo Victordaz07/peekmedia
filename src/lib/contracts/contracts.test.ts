@@ -47,6 +47,10 @@ const contract: Contract = {
   createdAt: "2026-09-23T12:00:00Z",
   sentAt: "2026-09-23T12:00:00Z",
   signedAt: null,
+  endedAt: null,
+  endDate: null,
+  endReason: null,
+  endedByName: null,
   signature: null,
 };
 const agency = { name: "Peek Media", representative: "Dagoberto Nuñez" };
@@ -104,11 +108,13 @@ describe("fechas y pagos", () => {
 
 describe("accesos", () => {
   it("genera códigos XXXX-XXXX sin caracteres confusos", () => {
-    for (let i = 0; i < 50; i++) expect(generateAccessCode()).toMatch(/^[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$/);
+    for (let i = 0; i < 50; i++) expect(generateAccessCode()).toMatch(/^[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$/);
   });
   it("normaliza lo que escribe la persona", () => {
     expect(normalizeAccessCode("ab3d ef7h")).toBe("AB3D-EF7H");
     expect(normalizeAccessCode("ab3d-ef7h")).toBe("AB3D-EF7H");
+    expect(normalizeAccessCode("ab3d ef7h jk9m")).toBe("AB3D-EF7H-JK9M");
+    expect(normalizeAccessCode("AB3DEF7HJK9M")).toBe("AB3D-EF7H-JK9M");
   });
   it("valida invitaciones y clientes", () => {
     expect(inviteSchema.safeParse({ name: "Ana", email: "ANA@Cafe.do ", role: "admin" }).data?.email).toBe("ana@cafe.do");
@@ -121,11 +127,15 @@ describe("accesos", () => {
 });
 
 describe("firma", () => {
-  const base = { contractId: "k1", name: "Ana Pérez", method: "typed" as const, image: null, accept: true as const };
+  const base = { contractId: "k1", name: "Ana Pérez", method: "typed" as const, image: null, accept: true as const, docSha256: "a".repeat(64) };
   it("exige nombre completo y aceptación", () => {
     expect(signSchema.safeParse(base).success).toBe(true);
     expect(signSchema.safeParse({ ...base, name: "Ana" }).success).toBe(false);
     expect(signSchema.safeParse({ ...base, accept: false }).success).toBe(false);
+  });
+  it("exige la huella del documento que se leyó", () => {
+    expect(signSchema.safeParse({ ...base, docSha256: undefined }).success).toBe(false);
+    expect(signSchema.safeParse({ ...base, docSha256: "no-es-un-hash" }).success).toBe(false);
   });
   it("solo acepta PNG en data URL como firma dibujada", () => {
     expect(signSchema.safeParse({ ...base, method: "drawn", image: "data:image/png;base64,iVBORw0KGgo=" }).success).toBe(true);

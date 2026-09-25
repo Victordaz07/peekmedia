@@ -1,7 +1,7 @@
 import "server-only";
 import { getClient, listClientsAdmin } from "@/lib/data/clients";
 import { insertInbox, upsertAudience, upsertMetrics } from "@/lib/data/insights";
-import { getPost, recentPublished, setPostStatus, updateTarget } from "@/lib/data/posts";
+import { claimForPublish, getPost, recentPublished, releasePublish, setPostStatus, updateTarget } from "@/lib/data/posts";
 import { getProfileKey, listConnectedWithSecrets, setAccountError, type AccountWithSecrets } from "@/lib/data/social";
 import type { Network } from "@/lib/design/tokens";
 import {
@@ -49,8 +49,21 @@ async function publishTarget(post: Post, platform: Network, account: AccountWith
   }
 }
 
-/** Publica en cada red pendiente. Devuelve el estado final de la pieza. */
-export async function publishPost(post: Post): Promise<PostStatus> {
+/**
+ * Publica en cada red pendiente. Devuelve el estado final de la pieza.
+ * Primero la reserva: si otra ejecución ya la está publicando, no hace nada (evita publicarla dos veces).
+ */
+export async function publishPost(input: Post): Promise<PostStatus> {
+  if (!(await claimForPublish(input.id))) return (await getPost(input.id, { admin: true }))?.status ?? input.status;
+  try {
+    // Estado fresco de cada red: lo que ya se publicó en otra ejecución no se vuelve a publicar.
+    return await publishClaimed((await getPost(input.id, { admin: true })) ?? input);
+  } finally {
+    await releasePublish(input.id).catch((e) => console.error("[releasePublish]", e));
+  }
+}
+
+async function publishClaimed(post: Post): Promise<PostStatus> {
   const accounts = await listConnectedWithSecrets(post.clientId);
   const errors: { platform: Network; error: string }[] = [];
   for (const t of post.targets) {

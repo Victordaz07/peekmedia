@@ -10,6 +10,7 @@ import type { Contract, ContractTerms, PlanRequest } from "@/lib/contracts/schem
 import { longDate, monthLabel, shortDate, todayRD } from "@/lib/format";
 import { ContractEditor } from "./contract-editor";
 import { ContractPaper } from "./contract-paper";
+import { EndContractCard } from "./end-contract";
 import { HistoryCard, PaymentsCard, RequestsCard, UpgradeCard } from "./side-cards";
 import { SignPanel } from "./sign-panel";
 
@@ -21,7 +22,11 @@ export type HistoryItem = Pick<Contract, "id" | "version" | "planName" | "status
 export function PlanView(props: {
   mode: PlanMode;
   canSign: boolean;
+  /** SHA-256 del contrato pendiente de firma, tal como se muestra. */
+  docSha256: string | null;
   isClientAdmin: boolean;
+  /** Dueño de la agencia: el único que puede anular o finalizar. */
+  isOwner: boolean;
   client: { id: string; name: string; contactName: string };
   agency: Agency;
   current: Contract | null;
@@ -100,21 +105,25 @@ export function PlanView(props: {
           <ContractPaper contract={current} sections={props.sections} agency={props.agency} client={client} showDraftNotice={isTeam} />
           <div className="flex min-w-0 flex-[2_1_320px] flex-col gap-5" data-noprint>
             {current.status === "sent" && (props.canSign || mode === "preview") && (
-              <SignPanel contractId={current.id} preview={mode === "preview"} defaultName={client.contactName} />
+              <SignPanel contractId={current.id} docSha256={props.docSha256 ?? ""} preview={mode === "preview"} defaultName={client.contactName} />
             )}
             <WaitingNote mode={mode} status={current.status} isClientAdmin={props.isClientAdmin} />
-            <UpgradeCard
-              mode={mode}
-              clientId={client.id}
-              current={current}
-              catalog={catalog}
-              requests={props.requests}
-              isClientAdmin={props.isClientAdmin}
-              onPrepare={(patch) => startEdit(patch)}
-            />
+            <EndedNote contract={current} showReason={isTeam} />
+            {current.status !== "voided" && current.status !== "terminated" && (
+              <UpgradeCard
+                mode={mode}
+                clientId={client.id}
+                current={current}
+                catalog={catalog}
+                requests={props.requests}
+                isClientAdmin={props.isClientAdmin}
+                onPrepare={(patch) => startEdit(patch)}
+              />
+            )}
             <RequestsCard mode={mode} requests={props.requests} catalog={catalog} />
             <PaymentsCard mode={mode} clientId={client.id} schedule={props.schedule} />
             <HistoryCard history={props.history} />
+            {isTeam && (current.status === "sent" || current.status === "signed") && <EndContractCard key={current.id} contract={current} isOwner={props.isOwner} />}
           </div>
         </div>
       )}
@@ -139,7 +148,11 @@ function Hero({ contract: c, usage }: { contract: Contract; usage: Partial<Recor
         <dl className="grid max-w-[520px] grid-cols-2 gap-x-6 gap-y-4">
           <Fact label="Inversión mensual" value={money(c.price)} />
           <Fact label="Inicio" value={longDate(c.startDate)} />
-          {renewal ? (
+          {c.status === "terminated" && c.endDate ? (
+            <Fact label="Finalizó" value={shortDate(c.endDate)} />
+          ) : c.status === "voided" && c.endedAt ? (
+            <Fact label="Anulado" value={shortDate(c.endedAt.slice(0, 10))} />
+          ) : renewal ? (
             <Fact label="Renovación" value={`Mes a mes desde ${shortDate(end, false)}`} />
           ) : (
             <Fact label="Vigente hasta" value={shortDate(end)} />
@@ -204,4 +217,18 @@ function WaitingNote({ mode, status, isClientAdmin }: { mode: PlanMode; status: 
           : null;
   if (!text) return null;
   return <p className="rounded-md bg-surface p-5 text-label">{text}</p>;
+}
+
+function EndedNote({ contract: c, showReason }: { contract: Contract; showReason: boolean }) {
+  if (c.status !== "voided" && c.status !== "terminated") return null;
+  return (
+    <div className="flex flex-col gap-1.5 rounded-md bg-surface p-5 text-label">
+      <p className="font-bold">
+        {c.status === "voided" ? "Contrato anulado" : `Contrato finalizado${c.endDate ? ` el ${longDate(c.endDate)}` : ""}`}
+        {c.endedByName && showReason ? ` · por ${c.endedByName}` : ""}
+      </p>
+      {showReason && c.endReason && <p className="text-muted">Motivo: {c.endReason}</p>}
+      {showReason && <p className="text-caption text-muted">Para seguir trabajando con este cliente, usa “Editar plan y condiciones”: se crea un contrato nuevo.</p>}
+    </div>
+  );
 }

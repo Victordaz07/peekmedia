@@ -8,7 +8,7 @@ import { signContractAction } from "./actions";
 type Mode = "typed" | "drawn";
 
 /** Firma electrónica: nombre completo, firma escrita o dibujada y aceptación. */
-export function SignPanel({ contractId, preview, defaultName }: { contractId: string; preview: boolean; defaultName: string }) {
+export function SignPanel({ contractId, docSha256, preview, defaultName }: { contractId: string; docSha256: string; preview: boolean; defaultName: string }) {
   const toast = useToast();
   const router = useRouter();
   const [name, setName] = useState(preview ? defaultName : "");
@@ -63,7 +63,7 @@ export function SignPanel({ contractId, preview, defaultName }: { contractId: st
     if (!accept) return setError("Marca la casilla para aceptar el contrato.");
     const image = mode === "drawn" ? (canvas.current?.toDataURL("image/png") ?? null) : null;
     start(async () => {
-      const res = await signContractAction({ contractId, name: name.trim(), method: mode, image, accept: true });
+      const res = await signContractAction({ contractId, docSha256, name: name.trim(), method: mode, image, accept: true });
       if (!res.ok) return setError(res.error);
       toast({ title: "¡Listo! Contrato firmado", description: `Código de verificación ${res.code}. Puedes imprimirlo o guardarlo en PDF.`, tone: "success" });
       router.refresh();

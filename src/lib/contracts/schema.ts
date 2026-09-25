@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ADDONS, deliverableKeys, PAYMENT_METHODS, type Deliverables } from "./catalog";
 
-export const contractStatuses = ["draft", "sent", "signed", "superseded"] as const;
+export const contractStatuses = ["draft", "sent", "signed", "superseded", "voided", "terminated"] as const;
 export type ContractStatus = (typeof contractStatuses)[number];
 
 export type Signature = {
@@ -41,8 +41,20 @@ export type Contract = {
   createdAt: string;
   sentAt: string | null;
   signedAt: string | null;
+  /** Anulado (enviado sin firmar) o finalizado (firmado): cuándo, desde qué fecha, por qué y quién. */
+  endedAt: string | null;
+  endDate: string | null;
+  endReason: string | null;
+  endedByName: string | null;
   signature: Signature | null;
 };
+
+/** Anular o finalizar: el motivo y la fecha que pide el dueño, más su contraseña. */
+export const endContractSchema = z.object({
+  reason: z.string().trim().min(10, "Explica el motivo (mínimo 10 caracteres)").max(1000),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha no válida"),
+  password: z.string().min(1, "Escribe tu contraseña").max(200),
+});
 
 const count = z.number().int().min(0).max(999);
 
@@ -70,6 +82,8 @@ export const signSchema = z.object({
     .regex(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/, "Firma no válida")
     .nullable(),
   accept: z.literal(true, "Marca la casilla para aceptar el contrato"),
+  /** SHA-256 del documento que la persona tenía en pantalla: si cambió, no se firma. */
+  docSha256: z.string().regex(/^[0-9a-f]{64}$/, "Recarga la página para ver la versión actual del contrato."),
 });
 
 export type PlanRequest = {

@@ -69,6 +69,8 @@ export const contractStatus = {
   sent: { label: "Pendiente de firma", tone: "warning" },
   signed: { label: "Firmado · Vigente", tone: "accent" },
   superseded: { label: "Versión anterior", tone: "outline" },
+  voided: { label: "Anulado", tone: "outline" },
+  terminated: { label: "Finalizado", tone: "neutral" },
 } as const satisfies Record<string, StatusDef>;
 
 /** Conexión de cuentas: none → esperando → verificando → conectado */

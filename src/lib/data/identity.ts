@@ -2,7 +2,7 @@ import "server-only";
 import { createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { isLocalMode } from "@/lib/env";
-import { createAdminClient, createSessionClient } from "@/lib/supabase/server";
+import { createAdminClient, createPublicClient, createSessionClient } from "@/lib/supabase/server";
 import { localTable, readJson, writeJson } from "./local-store";
 
 /**
@@ -75,6 +75,23 @@ export async function signInWithSecret(email: string, secret: string): Promise<S
     maxAge: SESSION_DAYS * 86_400,
   });
   return { id: user.id, email: user.email, name: user.name };
+}
+
+/**
+ * Vuelve a pedir la contraseña de quien ya tiene la sesión abierta (acciones delicadas).
+ * No toca la sesión actual: en Supabase abre una sesión aparte, sin cookies, y la cierra enseguida.
+ */
+export async function verifyOwnPassword(user: { id: string; email: string }, secret: string): Promise<boolean> {
+  if (!isLocalMode()) {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase.auth.signInWithPassword({ email: user.email.trim().toLowerCase(), password: secret });
+    if (error || !data.user) return false;
+    // "local" cierra solo esta sesión temporal, no las demás del usuario.
+    await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+    return data.user.id === user.id;
+  }
+  const local = await users.find((u) => u.id === user.id);
+  return Boolean(local && !local.banned && verifySecret(secret, local.secretHash));
 }
 
 export async function endSession() {

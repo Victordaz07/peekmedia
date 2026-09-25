@@ -16,7 +16,13 @@ export function isLocalMode() {
   return supabaseConfig() === null;
 }
 
-/** El modo local no tiene login: solo se permite fuera de producción (o si se fuerza para pruebas). */
+/** Producción real en Vercel: ahí el modo local nunca se enciende, aunque alguien ponga la variable por error. */
+export function isVercelProduction() {
+  return process.env.VERCEL_ENV === "production";
+}
+
+/** El modo local no tiene login real: solo se permite fuera de producción (o si se fuerza para pruebas, nunca en Vercel producción). */
 export function localModeAllowed() {
+  if (isVercelProduction()) return false;
   return process.env.NODE_ENV !== "production" || process.env.PEEK_ALLOW_LOCAL_MODE === "1";
 }
