@@ -1,9 +1,9 @@
 "use client";
 
-import { Check, ExternalLink, PlugZap, TriangleAlert } from "lucide-react";
+import { Check, ExternalLink, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Button, Card, Field, Input, Modal, NetworkDot, StatusBadge, UsageBar, useToast } from "@/components/ui";
+import { Button, Field, Input, Modal, useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { networks, type Network } from "@/lib/design/tokens";
 import { formatDateTimeRD } from "@/lib/format";
@@ -20,6 +20,32 @@ export type NetCard = {
   error: string | null;
   permissions: string[];
 };
+
+const netTile: Record<Network, string> = {
+  instagram: "bg-net-instagram text-ink",
+  facebook: "bg-net-facebook text-white",
+  tiktok: "bg-net-tiktok text-white",
+  youtube: "bg-net-youtube text-ink",
+  google: "bg-net-google text-white",
+  linkedin: "bg-net-linkedin text-ink",
+  threads: "bg-net-threads text-white",
+  x: "bg-net-x text-white",
+  pinterest: "bg-net-pinterest text-ink",
+};
+
+const netHost: Record<Network, string> = {
+  instagram: "facebook.com",
+  facebook: "facebook.com",
+  threads: "facebook.com",
+  tiktok: "tiktok.com",
+  youtube: "accounts.google.com",
+  google: "business.google.com",
+  linkedin: "linkedin.com",
+  pinterest: "pinterest.com",
+  x: "x.com",
+};
+
+const statusText: Record<ConnectionStatus, string> = { none: "Sin conectar", waiting: "Esperando", verifying: "Verificando", connected: "Conectado" };
 
 const modeLabel: Record<ConnectionMode, string> = {
   meta: "Conexión directa con Meta",
@@ -107,84 +133,102 @@ export function ConnectView({
         </p>
       )}
 
-      <Card className="gap-3">
-        <p className="font-display text-h3 font-bold">
-          {done === cards.length ? "¡Todas tus redes están conectadas!" : `Conecta tus redes para que publiquemos y midamos por ti`}
-        </p>
-        <UsageBar label="Redes conectadas" used={done} total={cards.length} />
-        <p className="text-label">
-          Nunca te pedimos tu contraseña: entras en la página oficial de cada red y aceptas los permisos. Puedes quitar el acceso cuando quieras.
-        </p>
-      </Card>
+      <section className="flex flex-wrap items-center justify-between gap-6 rounded-md bg-ink p-6 text-white">
+        <div className="flex max-w-[720px] flex-col gap-2">
+          <h2 className="font-display text-h2 font-bold">{done === cards.length ? "¡Todas tus redes están conectadas!" : "Conecta tus cuentas"}</h2>
+          <p className="text-body">
+            Al tocar “Conectar”, te llevamos a la página oficial de cada red. Ahí inicias sesión tú y apruebas el acceso para Peek Media. Nunca vemos ni guardamos tu
+            contraseña, y puedes quitar el acceso cuando quieras.
+          </p>
+        </div>
+        <div className="flex w-[240px] flex-col gap-2">
+          <p className="font-display leading-none font-bold">
+            <span className="text-[44px]">{done}</span> <span className="text-h3">/ {cards.length}</span>
+          </p>
+          <p className="text-label">redes conectadas</p>
+          <span className="h-2 overflow-hidden rounded-full bg-white/20" role="progressbar" aria-label="Redes conectadas" aria-valuemin={0} aria-valuemax={cards.length} aria-valuenow={done}>
+            <span className="block h-full rounded-full bg-cyan" style={{ width: `${cards.length ? (done / cards.length) * 100 : 0}%` }} />
+          </span>
+        </div>
+      </section>
 
       {!canManage && (
-        <p className="rounded-item bg-hairline px-4 py-3 text-label">Solo un Administrador de tu negocio puede conectar o quitar redes. Aquí ves cómo están.</p>
+        <p className="rounded-item bg-surface px-4 py-3 text-label">Solo un Administrador de tu negocio puede conectar o quitar redes. Aquí ves cómo están.</p>
       )}
 
-      <ul className="grid gap-4 md:grid-cols-2">
-        {cards.map((c) => (
-          <li key={c.network}>
-            <Card className={cn("h-full gap-3", c.error && "ring-2 ring-coral")}>
-              <div className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-2 font-display text-h3 font-bold">
-                  <NetworkDot network={c.network} className="size-3" />
-                  {networks[c.network].label}
-                </span>
-                <StatusBadge kind="connection" status={c.status} />
-              </div>
-              {c.status === "connected" ? (
-                <p className="text-label">
-                  <strong>{c.accountName || "Cuenta conectada"}</strong>
-                  <span className="text-muted">
-                    {" "}
-                    · {c.mode && modeLabel[c.mode]}
-                    {c.connectedAt && ` · desde ${formatDateTimeRD(c.connectedAt)}`}
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-4">
+        {cards.map((c) => {
+          const connected = c.status === "connected";
+          return (
+            <li key={c.network}>
+              <section className={cn("flex h-full flex-col gap-4 rounded-md bg-surface p-6", c.error && "ring-2 ring-coral")}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <span className={cn("grid size-11 shrink-0 place-items-center rounded-[10px] text-caption font-bold", netTile[c.network])}>{networks[c.network].short}</span>
+                    <span className="flex flex-col">
+                      <span className="font-display text-h3 leading-tight font-bold">{networks[c.network].label}</span>
+                      <span className="text-caption">{connected ? c.accountName || "Cuenta conectada" : c.status === "none" ? "Aún no conectada" : statusText[c.status]}</span>
+                    </span>
+                  </div>
+                  <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-eyebrow font-bold", connected ? "bg-ink text-white" : c.status === "none" ? "bg-sand" : "bg-coral-tint")}>
+                    {connected ? "Conectado" : c.status === "none" ? "Sin conectar" : statusText[c.status]}
                   </span>
-                </p>
-              ) : (
-                <ul className="flex flex-col gap-1 text-label">
-                  {c.permissions.map((p) => (
-                    <li key={p} className="flex items-start gap-2">
-                      <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-muted" />
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {c.error && <p className="text-label font-semibold text-coral-strong">{c.error}</p>}
-              {c.status === "verifying" && <p className="text-caption text-muted">Tu agencia está confirmando que recibió el acceso.</p>}
-              {!c.via && c.status === "none" && <p className="text-caption text-muted">Esta red todavía no se puede conectar desde aquí.</p>}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-eyebrow font-bold tracking-[0.12em] uppercase">Nos das permiso para</p>
+                  <ul className="flex flex-col gap-1.5 text-label">
+                    {c.permissions.map((p) => (
+                      <li key={p} className="flex items-start gap-2">
+                        <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-cyan" />
+                        {p}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {connected && c.mode && (
+                  <p className="text-caption text-muted">
+                    {modeLabel[c.mode]}
+                    {c.connectedAt && ` · desde ${formatDateTimeRD(c.connectedAt)}`}
+                  </p>
+                )}
+                {c.error && <p className="text-label font-semibold text-coral-strong">{c.error}</p>}
+                {c.status === "verifying" && <p className="text-caption text-muted">Tu agencia está confirmando que recibió el acceso.</p>}
+                {!c.via && c.status === "none" && <p className="text-caption text-muted">Esta red todavía no se puede conectar desde aquí.</p>}
 
-              <div className="mt-auto flex flex-wrap gap-2 pt-1">
-                {canManage && (c.status === "none" || c.error) && c.via && (
-                  <Button size="sm" iconLeft={<PlugZap className="size-4" />} loading={busy === `c-${c.network}`} onClick={() => connect(c.network)}>
-                    {c.error ? "Reconectar" : `Conectar ${networks[c.network].label}`}
-                  </Button>
-                )}
-                {canManage && c.status === "waiting" && (
-                  <>
-                    <Button size="sm" variant="dark" loading={busy === `d-${c.network}`} onClick={() => markDone(c.network)}>
-                      Ya lo hice
-                    </Button>
-                    <Button size="sm" variant="ghost" loading={busy === `c-${c.network}`} onClick={() => connect(c.network)}>
-                      Ver pasos otra vez
-                    </Button>
-                  </>
-                )}
-                {isTeam && (c.status === "verifying" || (c.status === "waiting" && c.mode === "manual")) && (
-                  <Button size="sm" variant="outline" onClick={() => (setConfirming(c.network), setName(""), setNameError(null))}>
-                    Confirmar conexión
-                  </Button>
-                )}
-                {canManage && c.status !== "none" && (
-                  <Button size="sm" variant="ghost" loading={busy === `x-${c.network}`} onClick={() => disconnect(c.network)}>
-                    Quitar acceso
-                  </Button>
-                )}
-              </div>
-            </Card>
-          </li>
-        ))}
+                <div className="mt-auto flex flex-col gap-2 pt-1">
+                  <div className="flex flex-wrap gap-2">
+                    {canManage && (c.status === "none" || c.error) && c.via && (
+                      <Button loading={busy === `c-${c.network}`} onClick={() => connect(c.network)}>
+                        {c.error ? "Reconectar" : `Conectar con ${networks[c.network].label}`} ↗
+                      </Button>
+                    )}
+                    {canManage && c.status === "waiting" && (
+                      <>
+                        <Button size="sm" variant="dark" loading={busy === `d-${c.network}`} onClick={() => markDone(c.network)}>
+                          Ya lo hice
+                        </Button>
+                        <Button size="sm" variant="ghost" loading={busy === `c-${c.network}`} onClick={() => connect(c.network)}>
+                          Ver pasos otra vez
+                        </Button>
+                      </>
+                    )}
+                    {isTeam && (c.status === "verifying" || (c.status === "waiting" && c.mode === "manual")) && (
+                      <Button size="sm" variant="outline" onClick={() => (setConfirming(c.network), setName(""), setNameError(null))}>
+                        Confirmar conexión
+                      </Button>
+                    )}
+                    {canManage && c.status !== "none" && (
+                      <Button size="sm" variant="outline" className="border-line" loading={busy === `x-${c.network}`} onClick={() => disconnect(c.network)}>
+                        Quitar acceso
+                      </Button>
+                    )}
+                  </div>
+                  {canManage && c.status === "none" && c.via && <p className="self-end text-caption">{c.via === "manual" ? "Acceso como socio" : `Se abre ${netHost[c.network]}`}</p>}
+                </div>
+              </section>
+            </li>
+          );
+        })}
       </ul>
 
       <Modal

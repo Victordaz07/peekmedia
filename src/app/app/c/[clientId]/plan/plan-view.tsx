@@ -7,7 +7,7 @@ import { money } from "@/lib/content/helpers";
 import { deliverableKeys, deliverableLabel, type ContractPlan, type DeliverableKey } from "@/lib/contracts/catalog";
 import { contractEnd, nextPayment, type Agency, type ContractSection, type ScheduleRow } from "@/lib/contracts/document";
 import type { Contract, ContractTerms, PlanRequest } from "@/lib/contracts/schema";
-import { longDate, shortDate, todayRD } from "@/lib/format";
+import { longDate, monthLabel, shortDate, todayRD } from "@/lib/format";
 import { ContractEditor } from "./contract-editor";
 import { ContractPaper } from "./contract-paper";
 import { HistoryCard, PaymentsCard, RequestsCard, UpgradeCard } from "./side-cards";
@@ -136,7 +136,7 @@ function Hero({ contract: c, usage }: { contract: Contract; usage: Partial<Recor
           </div>
           <StatusBadge kind="contract" status={c.status} />
         </div>
-        <dl className="flex flex-wrap gap-x-6 gap-y-3">
+        <dl className="grid max-w-[520px] grid-cols-2 gap-x-6 gap-y-4">
           <Fact label="Inversión mensual" value={money(c.price)} />
           <Fact label="Inicio" value={longDate(c.startDate)} />
           {renewal ? (
@@ -156,10 +156,10 @@ function Hero({ contract: c, usage }: { contract: Contract; usage: Partial<Recor
           </ul>
         )}
       </Card>
-      <Card className="min-w-0 flex-[1_1_300px] gap-3">
+      <Card className="min-w-0 flex-[1_1_300px] gap-3 self-start">
         <div className="flex flex-col gap-0.5">
-          <CardTitle>Qué incluye cada mes</CardTitle>
-          <p className="text-caption text-muted">Uso de este mes: lo publicado y lo programado.</p>
+          <CardTitle>Uso de este mes</CardTitle>
+          <p className="text-caption">{monthLabel(today.slice(0, 7))} · publicado + programado</p>
         </div>
         <div className="flex flex-col gap-3">
           {deliverableKeys
@@ -168,16 +168,6 @@ function Hero({ contract: c, usage }: { contract: Contract; usage: Partial<Recor
               <UsageBar key={k} label={deliverableLabel[k]} used={usage[k]!} total={c.deliverables[k]} />
             ))}
         </div>
-        <dl className="flex flex-col divide-y divide-hairline">
-          {deliverableKeys
-            .filter((k) => usage[k] === undefined || c.deliverables[k] === 0)
-            .map((k) => (
-              <div key={k} className="flex items-baseline justify-between gap-3 py-2 text-label">
-                <dt>{deliverableLabel[k]}</dt>
-                <dd className="font-display text-[18px] font-bold tabular-nums">{c.deliverables[k]}</dd>
-              </div>
-            ))}
-        </dl>
       </Card>
     </div>
   );

@@ -19,7 +19,7 @@ export type Perms = { isTeam: boolean; canReview: boolean };
 
 const actionLabel = { approve: "Aprobó", changes: "Pidió cambios", submit: "Envió a aprobación" } as const;
 
-type Props = { post: Post | null; handle: string; perms: Perms; onClose: () => void };
+type Props = { post: Post | null; handle: string; perms: Perms; onClose: () => void; /** Abrir directo en "Pedir cambios". */ asking?: boolean };
 
 /** Detalle de una publicación: vista previa, estado por red, métricas, historial y acciones según el rol. */
 export function PostDrawer(props: Props) {
@@ -27,12 +27,12 @@ export function PostDrawer(props: Props) {
   return <PostDetail key={`${props.post.id}:${props.post.version}:${props.post.status}`} {...props} post={props.post} />;
 }
 
-function PostDetail({ post, handle, perms, onClose }: Props & { post: Post }) {
+function PostDetail({ post, handle, perms, onClose, asking: startAsking = false }: Props & { post: Post }) {
   const toast = useToast();
   const router = useRouter();
   const [history, setHistory] = useState<Approval[]>([]);
   const [comment, setComment] = useState("");
-  const [asking, setAsking] = useState(false);
+  const [asking, setAsking] = useState(startAsking);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [pending, start] = useTransition();
 

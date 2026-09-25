@@ -18,11 +18,11 @@ export const networks = {
   facebook: { label: "Facebook", short: "FB", dot: "bg-net-facebook", charLimit: 63206 },
   tiktok: { label: "TikTok", short: "TT", dot: "bg-net-tiktok", charLimit: 2200 },
   youtube: { label: "YouTube", short: "YT", dot: "bg-net-youtube", charLimit: 5000 },
-  google: { label: "Google Business", short: "GBP", dot: "bg-net-google", charLimit: 1500 },
+  google: { label: "Google Business", short: "G", dot: "bg-net-google", charLimit: 1500 },
   linkedin: { label: "LinkedIn", short: "LI", dot: "bg-net-linkedin", charLimit: 3000 },
   threads: { label: "Threads", short: "TH", dot: "bg-net-threads", charLimit: 500 },
   x: { label: "X", short: "X", dot: "bg-net-x", charLimit: 280 },
-  pinterest: { label: "Pinterest", short: "PIN", dot: "bg-net-pinterest", charLimit: 500 },
+  pinterest: { label: "Pinterest", short: "PI", dot: "bg-net-pinterest", charLimit: 500 },
 } as const;
 
 export type Network = keyof typeof networks;

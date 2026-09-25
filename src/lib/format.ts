@@ -1,7 +1,7 @@
-const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic"];
+const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
 /**
- * "23 sept, 5:54 a. m." en hora de República Dominicana (UTC−4, sin horario de verano).
+ * "23 sep, 5:54 a. m." en hora de República Dominicana (UTC−4, sin horario de verano).
  * Sin Intl a propósito: Node y cada navegador traen datos de idioma distintos y la hidratación no coincidiría.
  */
 export function formatDateTimeRD(iso: string) {
@@ -77,4 +77,23 @@ export function compact(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
   if (n >= 10_000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`;
   return Math.round(n).toLocaleString("en-US");
+}
+
+const dows = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+/** Partes de una fecha en hora de RD para las tarjetas del prototipo: "Mié", 2, "sep", "11:30". */
+export function partsRD(iso: string) {
+  const d = new Date(new Date(iso).getTime() - 4 * 60 * 60 * 1000);
+  return {
+    dow: dows[d.getUTCDay()],
+    day: d.getUTCDate(),
+    month: months[d.getUTCMonth()],
+    time: `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`,
+  };
+}
+
+/** "Mié 2 sep · 11:30" (hora de RD, 24 h). */
+export function dayTimeRD(iso: string) {
+  const p = partsRD(iso);
+  return `${p.dow} ${p.day} ${p.month} · ${p.time}`;
 }

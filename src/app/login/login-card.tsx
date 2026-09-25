@@ -10,11 +10,14 @@ import { signIn, type SignInState } from "./actions";
 type Mode = "supabase" | "local" | "unconfigured";
 type Kind = "team" | "client";
 
-export function LoginCard({ mode, localTeam }: { mode: Mode; localTeam: { email: string; password: string } | null }) {
+type DemoAccess = { label: string; email: string; code: string };
+
+export function LoginCard({ mode, localTeam, demo = [] }: { mode: Mode; localTeam: { email: string; password: string } | null; demo?: DemoAccess[] }) {
   const params = useSearchParams();
   const [kind, setKind] = useState<Kind>(params.get("cliente") ? "client" : "team");
+  const [fill, setFill] = useState<DemoAccess | null>(null);
   return (
-    <AuthCard title="Entra a Peek" subtitle="Tu espacio para crear, aprobar y medir.">
+    <AuthCard title="Entra a tu panel" demo={demo.length > 0}>
       {params.get("enlace") === "vencido" && <Notice>Ese enlace venció o ya se usó. Pide otro con “¿Olvidaste tu contraseña?”.</Notice>}
       <Segmented
         label="Tipo de acceso"
@@ -29,29 +32,60 @@ export function LoginCard({ mode, localTeam }: { mode: Mode; localTeam: { email:
       {mode === "unconfigured" ? (
         <Notice>Falta configurar Supabase en el servidor (NEXT_PUBLIC_SUPABASE_URL y la clave pública).</Notice>
       ) : (
-        <LoginForm key={kind} kind={kind} localTeam={kind === "team" ? localTeam : null} canRecover={mode === "supabase" && kind === "team"} />
+        <LoginForm key={`${kind}:${fill?.email ?? ""}`} kind={kind} localTeam={kind === "team" ? localTeam : null} canRecover={mode === "supabase" && kind === "team"} fill={kind === "client" ? fill : null} />
+      )}
+      {demo.length > 0 && (
+        <div className="flex flex-col gap-2 border-t border-hairline pt-4">
+          <p className="text-eyebrow font-bold tracking-[0.12em] uppercase">Accesos de demostración</p>
+          {demo.map((d) => (
+            <button
+              key={d.email}
+              type="button"
+              onClick={() => (setKind("client"), setFill(d))}
+              className="flex justify-between gap-2.5 rounded-[12px] bg-sand px-3 py-2.5 text-left text-caption transition-colors hover:bg-[#b0b0b0]"
+            >
+              <span className="font-bold">{d.label}</span>
+              <span>
+                {d.email} · {d.code}
+              </span>
+            </button>
+          ))}
+        </div>
       )}
     </AuthCard>
   );
 }
 
 /** Tarjeta de las pantallas de acceso (entrar, recuperar y cambiar la contraseña). */
-export function AuthCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+export function AuthCard({ title, subtitle, demo, children }: { title: string; subtitle?: string; demo?: boolean; children: React.ReactNode }) {
   return (
-    <div className="flex w-full max-w-[440px] flex-col gap-6 rounded-lg bg-surface p-[clamp(24px,6vw,40px)] shadow-elevated">
-      <Link href="/" aria-label="Volver al sitio" className="self-start rounded-sm">
-        <Logo className="h-10" priority />
-      </Link>
+    <div className="flex w-full max-w-[440px] flex-col gap-[18px] rounded-lg bg-surface px-8 py-9 shadow-elevated">
+      <div className="flex items-center justify-between gap-2">
+        <Link href="/" aria-label="Volver al sitio" className="rounded-sm">
+          <Logo className="h-10" priority />
+        </Link>
+        {demo && <span className="rounded-sm bg-coral-tint px-2 py-1 text-[11px] font-bold tracking-[0.1em]">DEMO</span>}
+      </div>
       <div className="flex flex-col gap-2">
-        <h1 className="font-display text-h1 font-bold tracking-[-0.03em]">{title}</h1>
-        <p className="text-label text-muted">{subtitle}</p>
+        <h1 className="font-display text-[34px] leading-none font-bold tracking-[-0.03em]">{title}</h1>
+        {subtitle && <p className="text-label text-muted">{subtitle}</p>}
       </div>
       {children}
     </div>
   );
 }
 
-function LoginForm({ kind, localTeam, canRecover }: { kind: Kind; localTeam: { email: string; password: string } | null; canRecover: boolean }) {
+function LoginForm({
+  kind,
+  localTeam,
+  canRecover,
+  fill,
+}: {
+  kind: Kind;
+  localTeam: { email: string; password: string } | null;
+  canRecover: boolean;
+  fill: DemoAccess | null;
+}) {
   const [state, action, pending] = useActionState<SignInState, FormData>(signIn, {});
   const client = kind === "client";
   return (
@@ -68,7 +102,7 @@ function LoginForm({ kind, localTeam, canRecover }: { kind: Kind; localTeam: { e
           type="email"
           autoComplete="email"
           required
-          defaultValue={state.email ?? localTeam?.email}
+          defaultValue={state.email ?? fill?.email ?? localTeam?.email}
           placeholder={client ? "tu@negocio.com" : "tu@peekmedia.do"}
         />
       </Field>
@@ -78,12 +112,12 @@ function LoginForm({ kind, localTeam, canRecover }: { kind: Kind; localTeam: { e
         error={state.error}
       >
         {client ? (
-          <Input name="secret" autoComplete="one-time-code" autoCapitalize="characters" spellCheck={false} placeholder="XXXX-XXXX" required className="font-mono tracking-[0.12em] uppercase" />
+          <Input name="secret" autoComplete="one-time-code" autoCapitalize="characters" spellCheck={false} placeholder="XXXX-XXXX" required defaultValue={fill?.code} className="font-mono tracking-[0.12em] uppercase" />
         ) : (
           <Input name="secret" type="password" autoComplete="current-password" required minLength={6} defaultValue={localTeam?.password} />
         )}
       </Field>
-      <Button type="submit" size="lg" loading={pending} className="mt-2">
+      <Button type="submit" size="lg" variant="dark" loading={pending} className="mt-1">
         Entrar
       </Button>
       {client && (

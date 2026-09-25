@@ -176,6 +176,18 @@ export function demoAccesses(): DemoAccess[] {
 
 const HOUR = 3_600_000;
 
+/** Números "al azar" pero estables para cada cliente (la demo siempre se ve igual). */
+function seeded(seed: string) {
+  let h = 2166136261;
+  for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return () => {
+    h = (h + 0x6d2b79f5) | 0;
+    let t = Math.imul(h ^ (h >>> 15), 1 | h);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 /** Hora fija en RD (UTC−4) a `days` de hoy. */
 function atRD(days: number, hour: number) {
   const d = new Date(`${todayRD()}T00:00:00-04:00`);
@@ -272,7 +284,34 @@ export async function seedDemo(by: TeamUser): Promise<{ accesses: DemoAccess[] }
     }
 
     // Redes con 90 días de métricas, audiencia, bandeja y publicaciones ya publicadas.
-    for (const platform of demo.input.platforms) await connectDemo(client.id, client.name, platform);
+    // Todas conectadas menos la última, para enseñar cómo se conecta una red (como el prototipo).
+    const connected = demo.input.platforms.slice(0, -1);
+    for (const platform of connected) await connectDemo(client.id, client.name, platform);
+
+    // Un mes lleno: publicaciones casi a diario en varias redes, con métricas por red.
+    const r = seeded(client.name);
+    for (let i = 0; i < 16; i++) {
+      const count = 1 + Math.floor(r() * Math.min(4, connected.length));
+      const nets = [...connected].sort(() => r() - 0.5).slice(0, count);
+      const when = atRD(-(1 + Math.floor(i * 1.8)), [9, 11, 13, 18, 20][i % 5] + (r() < 0.5 ? 0.5 : 0));
+      const post = demoPost(client.id, demo.captions[(i + 2) % demo.captions.length], nets, "published", when, i);
+      post.targets = nets.map((platform) => ({
+        platform,
+        status: "published",
+        externalId: `demo-${i}-${platform}`,
+        url: null,
+        error: null,
+        publishedAt: when,
+        metrics: {
+          reach: Math.round(600 + r() * 3200),
+          likes: Math.round(30 + r() * 260),
+          comments: Math.round(r() * 35),
+          shares: Math.round(r() * 25),
+          saves: Math.round(r() * 40),
+        },
+      }));
+      await insertPostAdmin(post);
+    }
 
     // Publicaciones en todos los estados: programadas, por aprobar, con cambios pedidos y borrador.
     const main = demo.input.platforms.slice(0, 2);
@@ -282,6 +321,8 @@ export async function seedDemo(by: TeamUser): Promise<{ accesses: DemoAccess[] }
     await insertPostAdmin(demoPost(client.id, c[2], [demo.input.platforms[0]], "scheduled", atRD(6, 12), 2));
     await insertPostAdmin(demoPost(client.id, c[3], main, "pending", atRD(4, 10), 3));
     await insertPostAdmin(demoPost(client.id, c[4], main, "pending", atRD(8, 19), 4));
+    await insertPostAdmin(demoPost(client.id, c[7], demo.input.platforms.slice(0, 4), "pending", atRD(10, 18), 7));
+    await insertPostAdmin(demoPost(client.id, c[1], [demo.input.platforms.at(-1)!], "pending", atRD(12, 9), 1));
     const reviewer = demo.users.find((u) => u.role === "admin" || u.role === "approver")!;
     const changes = demoPost(client.id, c[5], main, "changes", atRD(5, 17), 5, { feedback: demo.feedback });
     await insertPostAdmin(changes);

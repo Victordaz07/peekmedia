@@ -3,7 +3,7 @@
 import { Inbox, RefreshCw, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Badge, Button, EmptyState, Field, NetworkDot, Segmented, Select, Textarea, useToast } from "@/components/ui";
+import { Avatar, Button, EmptyState, Field, NetworkDot, Select, Textarea, useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { networks as netTokens, type Network } from "@/lib/design/tokens";
 import { formatDateTimeRD } from "@/lib/format";
@@ -14,10 +14,18 @@ import { replyAction } from "./actions";
 
 type Filter = "open" | "all" | "comment" | "dm" | "review";
 
+/** "hace 8 min", "hace 5 h", "hace 2 d". */
+function ago(iso: string, now: number) {
+  const min = Math.max(1, Math.round((now - new Date(iso).getTime()) / 60_000));
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  return h < 24 ? `hace ${h} h` : `hace ${Math.round(h / 24)} d`;
+}
+
 export function InboxView({ clientId, items, networks, now }: { clientId: string; items: InboxItem[]; networks: Network[]; now: number }) {
   const toast = useToast();
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>("open");
+  const [filter, setFilter] = useState<Filter>("all");
   const [net, setNet] = useState<Network | "all">("all");
   const [selected, setSelected] = useState<string | null>(null);
   const [text, setText] = useState("");
@@ -65,20 +73,27 @@ export function InboxView({ clientId, items, networks, now }: { clientId: string
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Segmented
-          label="Filtrar"
-          size="sm"
-          value={filter}
-          onChange={setFilter}
-          className="max-w-full overflow-x-auto"
-          options={[
-            { value: "open", label: "Sin responder", badge: open },
-            { value: "all", label: "Todo" },
-            { value: "comment", label: "Comentarios" },
-            { value: "dm", label: "Mensajes" },
-            { value: "review", label: "Reseñas" },
-          ]}
-        />
+        <div role="group" aria-label="Filtrar" className="flex flex-wrap gap-2">
+          {(
+            [
+              ["all", "Todos"],
+              ["open", `Sin responder (${open})`],
+              ["comment", "Comentarios"],
+              ["dm", "Mensajes"],
+              ["review", "Reseñas"],
+            ] as [Filter, string][]
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={filter === value}
+              onClick={() => setFilter(value)}
+              className={cn("rounded-full px-4 py-2 text-label font-semibold transition-colors", filter === value ? "bg-ink text-white" : "bg-surface hover:bg-hairline")}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="flex items-center gap-2">
           <Select aria-label="Red" value={net} onChange={(e) => setNet(e.target.value as Network | "all")} className="w-44">
             <option value="all">Todas las redes</option>
@@ -102,23 +117,29 @@ export function InboxView({ clientId, items, networks, now }: { clientId: string
           className="bg-surface"
         />
       ) : (
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-          <ul className="flex flex-col divide-y divide-hairline overflow-hidden rounded-md bg-surface">
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)]">
+          <ul className="flex flex-col gap-1 rounded-md bg-surface p-3">
             {list.map((i) => (
               <li key={i.id}>
                 <button
                   type="button"
                   onClick={() => select(i.id)}
                   aria-current={i.id === selected || undefined}
-                  className={cn("flex w-full flex-col gap-1 px-4 py-3 text-left hover:bg-hairline/60", i.id === selected && "bg-cyan-tint")}
+                  className={cn("flex w-full items-start gap-3 rounded-item p-3 text-left transition-colors hover:bg-hairline/60", i.id === selected && "bg-sand/60")}
                 >
-                  <span className="flex items-center gap-2 text-caption font-semibold text-muted">
-                    <NetworkDot network={i.platform} />
-                    {inboxKindLabel[i.kind]} · {formatDateTimeRD(i.receivedAt)}
-                    {!i.reply && <Badge tone="warning" size="sm" className="ml-auto">Sin responder</Badge>}
+                  <Avatar name={i.author} color="ocean" size="sm" />
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-button font-bold">{i.author}</span>
+                      <span className="shrink-0 text-caption">{ago(i.receivedAt, now)}</span>
+                    </span>
+                    <span className="line-clamp-2 text-label">{i.text}</span>
+                    <span className="flex items-center gap-1.5 text-caption">
+                      <NetworkDot network={i.platform} className="size-2" />
+                      {netTokens[i.platform].label} · {inboxKindLabel[i.kind]}
+                      {!i.reply && <span className="ml-1 size-2 rounded-full bg-coral" aria-label="Sin responder" />}
+                    </span>
                   </span>
-                  <span className="text-label font-bold">{i.author}</span>
-                  <span className="line-clamp-2 text-label">{i.text}</span>
                 </button>
               </li>
             ))}
@@ -171,7 +192,7 @@ export function InboxView({ clientId, items, networks, now }: { clientId: string
               )}
             </section>
           ) : (
-            <p className="hidden rounded-md bg-surface p-8 text-center text-label text-muted lg:block">Elige un mensaje para verlo y responder.</p>
+            <p className="hidden rounded-md bg-surface p-12 text-center text-body lg:block">Selecciona un mensaje o comentario.</p>
           )}
         </div>
       )}

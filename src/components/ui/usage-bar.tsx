@@ -7,9 +7,9 @@ export function UsageBar({ label, used, total, className }: { label: string; use
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       <div className="flex items-baseline justify-between gap-3 text-label">
-        <span className="font-semibold">{label}</span>
-        <span className="tabular-nums text-muted">
-          <span className="font-bold text-ink">{used}</span> / {total}
+        <span>{label}</span>
+        <span className="font-bold tabular-nums">
+          {used} de {total}
         </span>
       </div>
       <div
@@ -18,7 +18,7 @@ export function UsageBar({ label, used, total, className }: { label: string; use
         aria-valuemin={0}
         aria-valuemax={total}
         aria-valuenow={Math.min(used, total)}
-        className="h-3 overflow-hidden rounded-full bg-sand"
+        className="h-2 overflow-hidden rounded-full bg-sand"
       >
         <div
           className={cn("h-full rounded-full transition-[width] duration-500 ease-reveal", full ? "bg-coral" : "bg-cyan")}

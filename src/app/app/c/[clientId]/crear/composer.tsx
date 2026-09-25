@@ -1,10 +1,10 @@
 "use client";
 
-import { ImagePlus, Lightbulb, TriangleAlert, X } from "lucide-react";
+import { ImagePlus, TriangleAlert, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { PostPreview } from "@/components/posts/post-preview";
-import { Button, Card, CardTitle, Field, Input, NetworkChip, Segmented, Spinner, Textarea, useToast } from "@/components/ui";
+import { Button, Field, Input, NetworkChip, Spinner, Textarea, useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { networks as netTokens, type Network } from "@/lib/design/tokens";
 import { fromRDInput, toRDInput, ymdRD } from "@/lib/format";
@@ -48,8 +48,6 @@ export function Composer({
   const [busy, setBusy] = useState<Intent | null>(null);
 
   const input: PostInput = { type, caption, firstComment, altText, media, platforms, scheduledAt: fromRDInput(when) };
-  const limit = platforms.length ? Math.min(...platforms.map((p) => netTokens[p].charLimit)) : 2200;
-  const limitNet = platforms.find((p) => netTokens[p].charLimit === limit);
   const scheduleProblem = validatePost(input, "schedule");
   const notConnected = platforms.filter((p) => !connected[p]);
   const manual = platforms.filter((p) => connected[p] === "manual");
@@ -103,38 +101,63 @@ export function Composer({
   }
 
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-[1fr_360px]">
-      <div className="flex flex-col gap-5">
-        <Card className="gap-4">
-          <CardTitle>{post ? `Editar publicación · v${post.version}` : "Crear publicación"}</CardTitle>
-          {post?.feedback && (
-            <p className="rounded-item bg-coral-tint p-3 text-label">
-              <strong>El cliente pidió:</strong> {post.feedback}
-            </p>
-          )}
-          <fieldset className="flex flex-col gap-2">
-            <legend className="mb-2 text-label font-semibold">Redes</legend>
-            <div className="flex flex-wrap gap-2">
-              {networks.map((n) => (
-                <NetworkChip key={n} network={n} selected={platforms.includes(n)} onClick={() => toggle(n)} />
-              ))}
-            </div>
-            {platforms.map((p) => composerNote[p] && <Note key={p}>{composerNote[p]}</Note>)}
-            {notConnected.length > 0 && (
-              <Note tone="alert">
-                {notConnected.map((p) => netTokens[p].label).join(", ")} {notConnected.length === 1 ? "no está conectada" : "no están conectadas"}: fallará al publicar. Conéctala en la pestaña Conectar.
-              </Note>
-            )}
-            {manual.length > 0 && <Note>{manual.map((p) => netTokens[p].label).join(", ")}: acceso como socio. Quedará marcada “Publicar a mano”.</Note>}
-          </fieldset>
-
-          <div className="flex flex-col gap-2">
-            <span className="text-label font-semibold">Formato</span>
-            <Segmented label="Formato" value={type} onChange={setType} options={postTypes.map((t) => ({ value: t, label: postTypeLabel[t] }))} className="max-w-full overflow-x-auto" />
+    <div className="grid items-start gap-5 xl:grid-cols-[1fr_440px]">
+      <section className="flex flex-col gap-4 rounded-md bg-surface p-6">
+        {post && <h2 className="font-display text-h3 font-bold">Editar publicación · v{post.version}</h2>}
+        {post?.feedback && (
+          <p className="rounded-item bg-coral-tint p-3 text-label">
+            <strong>El cliente pidió:</strong> {post.feedback}
+          </p>
+        )}
+        <fieldset className="flex flex-col gap-2.5">
+          <legend className="mb-2.5 text-caption font-bold">Publicar en</legend>
+          <div className="flex flex-wrap gap-2">
+            {networks.map((n) => (
+              <NetworkChip key={n} network={n} selected={platforms.includes(n)} onClick={() => toggle(n)} className="px-4 py-2 text-button" />
+            ))}
           </div>
+          {platforms.map((p) => composerNote[p] && <Note key={p}>{composerNote[p]}</Note>)}
+          {notConnected.length > 0 && (
+            <Note tone="alert">
+              {notConnected.map((p) => netTokens[p].label).join(", ")} {notConnected.length === 1 ? "no está conectada" : "no están conectadas"}: fallará al publicar. Conéctala en “Conectar cuentas”.
+            </Note>
+          )}
+          {manual.length > 0 && <Note>{manual.map((p) => netTokens[p].label).join(", ")}: acceso como socio. Quedará marcada “Publicar a mano”.</Note>}
+        </fieldset>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-label font-semibold">Archivos</span>
+        <div role="radiogroup" aria-label="Formato" className="flex flex-col gap-2.5">
+          <span className="text-caption font-bold">Formato</span>
+          <div className="flex flex-wrap gap-2">
+            {postTypes.map((t) => (
+              <button
+                key={t}
+                type="button"
+                role="radio"
+                aria-checked={type === t}
+                onClick={() => setType(t)}
+                className={cn("rounded-full px-3.5 py-2 text-label font-semibold transition-colors", type === t ? "bg-cyan text-ink" : "bg-sand hover:bg-[#b0b0b0]")}
+              >
+                {postTypeLabel[t]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2.5">
+          <span className="text-caption font-bold">Contenido</span>
+          {media.length + uploading === 0 ? (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="flex items-center gap-3.5 rounded-item border-[1.5px] border-dashed border-line p-5 text-left transition-colors hover:border-ink/40"
+            >
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-sand text-[20px]">+</span>
+              <span className="flex flex-col gap-0.5">
+                <span className="text-button font-bold">Subir imagen o video</span>
+                <span className="text-caption">JPG, PNG o WebP hasta 8 MB · MP4 o MOV hasta 100 MB · máximo 10.</span>
+              </span>
+            </button>
+          ) : (
             <div className="flex flex-wrap gap-2">
               {media.map((m, i) => (
                 <div key={m.id} className="relative size-24 overflow-hidden rounded-sm bg-ocean">
@@ -171,70 +194,63 @@ export function Composer({
                 </button>
               )}
             </div>
-            <input ref={fileRef} type="file" accept={ACCEPT} multiple hidden onChange={(e) => upload(e.target.files)} aria-label="Subir imágenes o videos" />
-            <p className="text-caption text-muted">JPG, PNG o WebP hasta 8 MB · MP4 o MOV hasta 100 MB · máximo 10.</p>
-          </div>
-
-          <Field
-            label="Texto"
-            counter={
-              <span className={cn(caption.length > limit && "font-bold text-coral-strong")}>
-                {caption.length.toLocaleString("en-US")} / {limit.toLocaleString("en-US")}
-                {limitNet && platforms.length > 1 ? ` (${netTokens[limitNet].label})` : ""}
-              </span>
-            }
-          >
-            <Textarea rows={7} value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Escribe el texto de la publicación…" />
-          </Field>
-          <Field label="Primer comentario" hint="Ideal para hashtags. Solo en Instagram y Facebook.">
-            <Textarea rows={2} value={firstComment} onChange={(e) => setFirstComment(e.target.value)} />
-          </Field>
-          <Field label="Texto alternativo" hint="Describe la imagen para personas que usan lector de pantalla.">
-            <Input value={altText} onChange={(e) => setAltText(e.target.value)} />
-          </Field>
-        </Card>
-
-        <Card className="gap-4">
-          <CardTitle>Cuándo</CardTitle>
-          <Field label="Fecha y hora (hora de RD)">
-            <Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="max-w-xs" />
-          </Field>
-          {best && (
-            <p className="flex items-start gap-2 text-label">
-              <Lightbulb aria-hidden className="mt-0.5 size-4 shrink-0" />
-              <span>
-                Según lo publicado, a esta audiencia le va mejor el <strong>{best}</strong>
-              </span>
-            </p>
           )}
-          {error && (
-            <p role="alert" className="flex items-start gap-2 text-label font-semibold text-coral-strong">
-              <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
-              {error}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <Button loading={busy === "approval"} disabled={pending} onClick={() => save("approval")}>
-              Enviar a aprobación
-            </Button>
-            <Button variant="dark" loading={busy === "schedule"} disabled={pending || !!scheduleProblem} title={scheduleProblem ?? undefined} onClick={() => save("schedule")}>
-              Programar
-            </Button>
-            <Button variant="outline" loading={busy === "now"} disabled={pending} onClick={() => save("now")}>
-              Publicar ahora
-            </Button>
-            <Button variant="ghost" loading={busy === "draft"} disabled={pending} onClick={() => save("draft")}>
-              Guardar borrador
-            </Button>
+          <input ref={fileRef} type="file" accept={ACCEPT} multiple hidden onChange={(e) => upload(e.target.files)} aria-label="Subir imágenes o videos" />
+          <Textarea rows={7} value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Escribe el texto de la publicación…" aria-label="Texto de la publicación" />
+          <div className="flex flex-wrap gap-1.5" aria-live="polite">
+            {platforms.map((p) => {
+              const max = netTokens[p].charLimit;
+              return (
+                <span key={p} className={cn("rounded-full px-2.5 py-1 text-eyebrow font-bold tabular-nums", caption.length > max ? "bg-coral-strong text-white" : "bg-sand")}>
+                  {netTokens[p].short} {caption.length.toLocaleString("en-US")}/{max.toLocaleString("en-US")}
+                </span>
+              );
+            })}
           </div>
-          <p className="text-caption text-muted">
-            “Enviar a aprobación” le avisa al cliente por correo; cuando apruebe, se programa sola para esta fecha.
+          <details className="group rounded-item bg-hairline/60 px-4 py-3">
+            <summary className="cursor-pointer text-label font-semibold">Más opciones: primer comentario y texto alternativo</summary>
+            <div className="mt-3 flex flex-col gap-3">
+              <Field label="Primer comentario" hint="Ideal para hashtags. Solo en Instagram y Facebook.">
+                <Textarea rows={2} value={firstComment} onChange={(e) => setFirstComment(e.target.value)} />
+              </Field>
+              <Field label="Texto alternativo" hint="Describe la imagen para personas que usan lector de pantalla.">
+                <Input value={altText} onChange={(e) => setAltText(e.target.value)} />
+              </Field>
+            </div>
+          </details>
+        </div>
+
+        <div className="flex flex-wrap items-end gap-4">
+          <Field label="Fecha y hora" className="w-full max-w-[300px]">
+            <Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+          </Field>
+          {best && <p className="max-w-[260px] pb-2 text-caption">Mejor momento según tu audiencia: {best}.</p>}
+        </div>
+        {error && (
+          <p role="alert" className="flex items-start gap-2 text-label font-semibold text-coral-strong">
+            <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+            {error}
           </p>
-        </Card>
-      </div>
+        )}
+        <div className="flex flex-wrap gap-2.5">
+          <Button variant="secondary" loading={busy === "draft"} disabled={pending} onClick={() => save("draft")}>
+            Guardar borrador
+          </Button>
+          <Button variant="outline" loading={busy === "approval"} disabled={pending} onClick={() => save("approval")}>
+            Enviar a aprobación
+          </Button>
+          <Button loading={busy === "schedule"} disabled={pending || !!scheduleProblem} title={scheduleProblem ?? undefined} onClick={() => save("schedule")}>
+            Programar
+          </Button>
+          <Button variant="ghost" loading={busy === "now"} disabled={pending} onClick={() => save("now")}>
+            Publicar ahora
+          </Button>
+        </div>
+        <p className="text-caption text-muted">“Enviar a aprobación” le avisa al cliente por correo; cuando apruebe, se programa sola para esta fecha.</p>
+      </section>
 
-      <div className="flex flex-col gap-3 lg:sticky lg:top-6">
-        <span className="text-eyebrow font-bold tracking-[0.12em] text-muted uppercase">Vista previa</span>
+      <div className="flex flex-col gap-2.5 xl:sticky xl:top-6">
+        <span className="text-caption font-semibold">Vista previa</span>
         <PostPreview handle={handle} type={type} caption={caption} media={media} />
       </div>
     </div>

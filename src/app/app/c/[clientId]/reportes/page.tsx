@@ -1,14 +1,14 @@
 import { BarChart3 } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Bars, FollowersChart, Heatmap, KpiRow, sourceLabel, TopPosts } from "@/components/posts/insights";
+import { Bars, Heatmap } from "@/components/posts/insights";
 import { PrintReportButton } from "@/components/posts/print-button";
-import { ButtonLink, EmptyState, LoadingState, Table, TBody, TD, TH, THead, TR, TrendPill } from "@/components/ui";
+import { ButtonLink, EmptyState, LoadingState, NetworkDot } from "@/components/ui";
 import { networks } from "@/lib/design/tokens";
 import { listAudience, listMetrics } from "@/lib/data/insights";
 import { listPosts } from "@/lib/data/posts";
 import { compact, longDate, todayRD } from "@/lib/format";
-import { bestTime, daysAgo, heatmap, kpis, platformRows, topPosts } from "@/lib/social/analytics";
+import { bestTime, daysAgo, heatmap, platformRows } from "@/lib/social/analytics";
 import { space } from "../space";
 
 export const metadata: Metadata = { title: "Reportes" };
@@ -37,63 +37,64 @@ async function Reportes({ params, searchParams }: Pick<PageProps<"/app/c/[client
     );
   }
 
-  const k = kpis(rows, posts);
   const plats = platformRows(rows, posts);
   const heat = heatmap(posts);
   const aud = audience.find((a) => a.platform === "instagram" && (a.ages.length || a.cities.length)) ?? audience[0];
 
   return (
     <div data-report className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-display text-h2 font-bold">Reporte de {s.client.name}</h2>
-          <p className="text-label text-muted">
-            Últimos 30 días al {longDate(todayRD())} · hora de RD
-          </p>
-        </div>
+      <div className="hidden print:block">
+        <h2 className="font-display text-h2 font-bold">Reporte de {s.client.name}</h2>
+        <p className="text-label">Últimos 30 días al {longDate(todayRD())} · hora de RD</p>
+      </div>
+      <div className="flex justify-end" data-noprint>
         <PrintReportButton />
       </div>
 
-      <KpiRow k={k} source={sourceLabel(k)} />
-      <FollowersChart rows={rows} />
-
-      <Table>
-        <caption className="sr-only">Resultados por red, últimos 30 días</caption>
-        <THead>
-          <tr>
-            <TH>Red</TH>
-            <TH className="text-right">Seguidores</TH>
-            <TH className="text-right">Crecimiento</TH>
-            <TH className="text-right">Alcance</TH>
-            <TH className="text-right">Interacciones</TH>
-            <TH className="text-right">Publicaciones</TH>
-          </tr>
-        </THead>
-        <TBody>
-          {plats.map((r) => (
-            <TR key={r.platform}>
-              <TD className="font-semibold">{networks[r.platform].label}</TD>
-              <TD className="text-right tabular-nums">{compact(r.followers)}</TD>
-              <TD className="text-right">
-                <TrendPill value={r.growth} />
-              </TD>
-              <TD className="text-right tabular-nums">{compact(r.reach)}</TD>
-              <TD className="text-right tabular-nums">{compact(r.interactions)}</TD>
-              <TD className="text-right tabular-nums">{r.posts}</TD>
-            </TR>
-          ))}
-        </TBody>
-      </Table>
+      <section className="flex flex-col gap-4 rounded-md bg-surface p-6">
+        <h2 className="font-display text-h3 font-bold">Resumen por red · últimos 30 días</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-left text-label">
+            <caption className="sr-only">Resultados por red, últimos 30 días</caption>
+            <thead>
+              <tr className="border-b-[1.5px] border-ink text-caption">
+                {["Red", "Seguidores", "Crecimiento", "Alcance", "Interacciones", "Posts"].map((h) => (
+                  <th key={h} scope="col" className="px-2 py-2.5 font-bold">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {plats.map((r) => {
+                const google = r.platform === "google";
+                return (
+                  <tr key={r.platform} className="border-b border-hairline">
+                    <th scope="row" className="px-2 py-3 font-bold">
+                      <span className="flex items-center gap-2">
+                        <NetworkDot network={r.platform} className="size-2" />
+                        {networks[r.platform].label}
+                      </span>
+                    </th>
+                    <td className="px-2 py-3 tabular-nums">{google ? "—" : r.followers.toLocaleString("en-US")}</td>
+                    <td className="px-2 py-3 tabular-nums">{google ? "—" : `${r.growth >= 0 ? "+" : ""}${r.growth}%`}</td>
+                    <td className="px-2 py-3 tabular-nums">{google ? `${r.reach.toLocaleString("en-US")} vistas` : compact(r.reach)}</td>
+                    <td className="px-2 py-3 tabular-nums">{google ? `${r.interactions.toLocaleString("en-US")} acciones` : r.interactions.toLocaleString("en-US")}</td>
+                    <td className="px-2 py-3 tabular-nums">{r.posts}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <Bars title={`Edades${aud ? ` · ${networks[aud.platform].label}` : ""}`} items={aud?.ages ?? []} />
-        <Bars title="Ciudades principales" items={aud?.cities ?? []} />
+        <Bars title="Edad de la audiencia" items={aud?.ages ?? []} />
+        <Bars title="Ciudades principales" items={aud?.cities ?? []} tone="ink" />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Heatmap grid={heat.grid} best={bestTime(heat.grid)} samples={heat.samples} />
-        <TopPosts posts={topPosts(posts, 5)} />
-      </div>
+      <Heatmap grid={heat.grid} best={bestTime(heat.grid)} samples={heat.samples} />
     </div>
   );
 }
