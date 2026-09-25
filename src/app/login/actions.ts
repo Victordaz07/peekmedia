@@ -6,6 +6,7 @@ import { normalizeAccessCode } from "@/lib/access-code";
 import { clientUserByUserId } from "@/lib/data/clients";
 import { currentSessionUser, endSession, sendTeamPasswordReset, setOwnPassword, signInWithSecret, teamRoleOf } from "@/lib/data/identity";
 import { isLocalMode, localModeAllowed } from "@/lib/env";
+import { safeNext } from "@/lib/next-path";
 import { siteUrl } from "@/lib/site";
 
 export type SignInState = { error?: string; email?: string };
@@ -29,7 +30,7 @@ export async function signIn(_prev: SignInState, form: FormData): Promise<SignIn
   const wrong = kind === "team" ? "Correo o contraseña incorrectos." : "Correo o código incorrectos. Pídele uno nuevo a tu community manager.";
   if (!user) return { error: wrong, email };
 
-  if (await teamRoleOf(user.id)) redirect("/app");
+  if (await teamRoleOf(user.id)) redirect(safeNext(form.get("next")) ?? "/app");
   const access = await clientUserByUserId(user.id);
   if (access?.active) redirect(`/app/c/${access.clientId}`);
 

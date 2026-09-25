@@ -10,12 +10,17 @@ import { clientRoleLabel } from "@/lib/clients/schema";
 import { getAgency } from "@/lib/contracts/agency";
 import { ADDONS, contractPlans, type ContractPlan } from "@/lib/contracts/catalog";
 import { canonicalDocument } from "@/lib/contracts/document";
-import { contractTermsSchema, signSchema, type ContractTerms } from "@/lib/contracts/schema";
+import { contractTermsSchema, endContractSchema, signSchema, type ContractTerms } from "@/lib/contracts/schema";
 import { defaultTerms, termsOf } from "@/lib/contracts/terms";
 import { getClient, listClientUsers } from "@/lib/data/clients";
 import { getSiteContent } from "@/lib/data/content";
+import { cancelEndRequest, createEndRequest, END_LINK_MINUTES, recordCheck, tooManyFailedChecks } from "@/lib/data/contract-end";
 import * as contracts from "@/lib/data/contracts";
+import { verifyOwnPassword } from "@/lib/data/identity";
+import { isLocalMode } from "@/lib/env";
+import { addMonths, longDate, todayRD } from "@/lib/format";
 import { sendMail } from "@/lib/mail";
+import { siteUrl } from "@/lib/site";
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
@@ -170,4 +175,67 @@ export async function setPaymentAction(clientId: string, period: string, paid: b
   await contracts.setPaymentPaid(clientId, period, signed.price, paid);
   refresh(clientId);
   return { ok: true };
+}
+
+/* ───────── dueño: anular o finalizar ───────── */
+
+const endAction = { sent: "void", signed: "terminate" } as const;
+
+function maskEmail(email: string) {
+  const [user, domain] = email.split("@");
+  return `${user.slice(0, 2)}${"•".repeat(Math.max(1, user.length - 2))}@${domain}`;
+}
+
+/**
+ * Paso 1: el dueño pide anular (enviado) o finalizar (firmado) con su contraseña.
+ * No cambia nada todavía: manda un enlace de confirmación a su correo que vence en 30 minutos.
+ */
+export async function requestEndContractAction(contractId: string, input: unknown): Promise<Result<{ email: string; devLink?: string }>> {
+  const viewer = await requireTeam();
+  if (viewer.role !== "owner") return { ok: false, error: "Solo el dueño de la agencia puede anular o finalizar contratos." };
+  const contract = id.safeParse(contractId).success ? await contracts.getContract(contractId) : null;
+  if (!contract) return { ok: false, error: "Ese contrato no existe." };
+  const action = contract.status === "sent" || contract.status === "signed" ? endAction[contract.status] : null;
+  if (!action) return { ok: false, error: "Solo se puede anular un contrato enviado o finalizar uno firmado." };
+  const parsed = endContractSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const { reason, password } = parsed.data;
+  const today = todayRD();
+  const endDate = action === "void" ? today : parsed.data.endDate;
+  if (action === "terminate" && (endDate < contract.startDate || endDate > addMonths(today, 12))) {
+    return { ok: false, error: "La fecha de finalización debe estar entre el inicio del contrato y un año desde hoy." };
+  }
+
+  if (await tooManyFailedChecks(viewer.id)) return { ok: false, error: "Demasiados intentos con la contraseña equivocada. Espera 15 minutos." };
+  const ok = await verifyOwnPassword(viewer, password);
+  await recordCheck(viewer.id, ok);
+  if (!ok) return { ok: false, error: "Contraseña incorrecta." };
+
+  const client = await getClient(contract.clientId);
+  const request = await createEndRequest({ contractId: contract.id, action, reason, endDate, requestedBy: viewer.id, requestedByName: viewer.name });
+  const link = `${siteUrl}/app/contratos/confirmar?t=${request.token}`;
+  const verb = action === "void" ? "anular" : "finalizar";
+  const mail = await sendMail({
+    to: viewer.email,
+    subject: `Confirma: ${verb} el contrato de ${client?.name ?? "un cliente"}`,
+    text: [
+      `Hola, ${viewer.name}:`,
+      ``,
+      `Pediste ${verb} el contrato ${contract.number} v${contract.version} (${contract.planName}) de ${client?.name ?? "un cliente"}.`,
+      action === "terminate" ? `Fecha de finalización: ${longDate(endDate)}.` : `El cliente ya no podrá firmarlo.`,
+      `Motivo: ${reason}`,
+      ``,
+      `Para confirmarlo, abre este enlace en los próximos ${END_LINK_MINUTES} minutos:`,
+      link,
+      ``,
+      `Si no fuiste tú, no abras el enlace y cambia tu contraseña enseguida: alguien la conoce.`,
+      `— Peek Media`,
+    ].join("\n"),
+  });
+  if (!mail.sent) {
+    if (isLocalMode()) return { ok: true, email: viewer.email, devLink: link };
+    await cancelEndRequest(request.id);
+    return { ok: false, error: `No se pudo enviar el correo de confirmación (${mail.reason}). No se cambió nada.` };
+  }
+  return { ok: true, email: maskEmail(viewer.email) };
 }

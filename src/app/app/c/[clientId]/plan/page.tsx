@@ -45,7 +45,8 @@ async function Plan({ params, searchParams }: Pick<PageProps<"/app/c/[clientId]/
   const usage = { ...monthUsage(posts), networks: accounts.filter((a) => a.status === "connected").length };
 
   // El cliente nunca ve borradores (RLS ya los oculta en Supabase; aquí también, por si acaso).
-  const versions = mode === "team" ? all : all.filter((c) => c.status !== "draft");
+  // El motivo interno de un cierre tampoco sale del equipo.
+  const versions = mode === "team" ? all : all.filter((c) => c.status !== "draft").map((c) => ({ ...c, endReason: null, endedByName: null }));
   const current = versions[0] ?? null;
   const catalog = contractPlans(content.plans);
 
@@ -63,6 +64,7 @@ async function Plan({ params, searchParams }: Pick<PageProps<"/app/c/[clientId]/
       mode={mode}
       canSign={isClientAdmin(viewer) && current?.status === "sent"}
       isClientAdmin={isClientAdmin(viewer)}
+      isOwner={viewer.kind === "team" && viewer.role === "owner"}
       client={{ id: client.id, name: client.name, contactName: client.contactName }}
       agency={agency}
       current={current}

@@ -29,6 +29,8 @@ export async function proxy(request: NextRequest) {
   const login = request.nextUrl.clone();
   login.pathname = "/login";
   login.search = "";
+  // Para volver a la página pedida después de entrar (p. ej. el enlace de confirmación de un correo).
+  login.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
   const redirect = NextResponse.redirect(login);
   response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
   return redirect;

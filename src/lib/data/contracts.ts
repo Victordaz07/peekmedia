@@ -30,6 +30,10 @@ type ContractRow = {
   created_at: string;
   sent_at: string | null;
   signed_at: string | null;
+  ended_at: string | null;
+  end_date: string | null;
+  end_reason: string | null;
+  ended_by_name: string | null;
   signatures?: SignatureRow[];
 };
 
@@ -84,6 +88,10 @@ const contractFromRow = (r: ContractRow): Contract => ({
   createdAt: r.created_at,
   sentAt: r.sent_at,
   signedAt: r.signed_at,
+  endedAt: r.ended_at ?? null,
+  endDate: r.end_date ?? null,
+  endReason: r.end_reason ?? null,
+  endedByName: r.ended_by_name ?? null,
   signature: r.signatures?.[0] ? sigFromRow(r.signatures[0]) : null,
 });
 
@@ -192,6 +200,10 @@ export async function saveContractDraft(clientId: string, terms: ContractTerms, 
       createdAt: now,
       sentAt: null,
       signedAt: null,
+      endedAt: null,
+      endDate: null,
+      endReason: null,
+      endedByName: null,
     };
     await contractsT.insert(row);
     return { ...row, signature: null };

@@ -47,6 +47,10 @@ const contract: Contract = {
   createdAt: "2026-09-23T12:00:00Z",
   sentAt: "2026-09-23T12:00:00Z",
   signedAt: null,
+  endedAt: null,
+  endDate: null,
+  endReason: null,
+  endedByName: null,
   signature: null,
 };
 const agency = { name: "Peek Media", representative: "Dagoberto Nuñez" };

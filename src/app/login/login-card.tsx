@@ -87,10 +87,12 @@ function LoginForm({
   fill: DemoAccess | null;
 }) {
   const [state, action, pending] = useActionState<SignInState, FormData>(signIn, {});
+  const next = useSearchParams().get("next");
   const client = kind === "client";
   return (
     <form role="tabpanel" action={action} className="flex flex-col gap-4" noValidate>
       <input type="hidden" name="kind" value={kind} />
+      {next && <input type="hidden" name="next" value={next} />}
       {localTeam && (
         <Notice>
           Modo local (sin Supabase). Entra con <strong>{localTeam.email}</strong> y la contraseña <strong>{localTeam.password}</strong>.
