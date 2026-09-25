@@ -1,6 +1,6 @@
 "use client";
 
-import { Inbox, RefreshCw, Star } from "lucide-react";
+import { Inbox, RefreshCw, Sparkles, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Avatar, Button, EmptyState, Field, NetworkDot, Select, Textarea, useToast } from "@/components/ui";
@@ -8,9 +8,10 @@ import { cn } from "@/lib/cn";
 import { networks as netTokens, type Network } from "@/lib/design/tokens";
 import { formatDateTimeRD } from "@/lib/format";
 import { dmWindowOpen, inboxKindLabel, QUICK_REPLIES } from "@/lib/social/inbox";
+import type { ReplySuggestion } from "@/lib/ai/schemas";
 import type { InboxItem } from "@/lib/social/schema";
 import { syncNowAction } from "../conectar/actions";
-import { replyAction } from "./actions";
+import { replyAction, suggestReplyAction } from "./actions";
 
 type Filter = "open" | "all" | "comment" | "dm" | "review";
 
@@ -22,7 +23,7 @@ function ago(iso: string, now: number) {
   return h < 24 ? `hace ${h} h` : `hace ${Math.round(h / 24)} d`;
 }
 
-export function InboxView({ clientId, items, networks, now }: { clientId: string; items: InboxItem[]; networks: Network[]; now: number }) {
+export function InboxView({ clientId, items, networks, now, aiReady }: { clientId: string; items: InboxItem[]; networks: Network[]; now: number; aiReady: boolean }) {
   const toast = useToast();
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("all");
@@ -32,6 +33,8 @@ export function InboxView({ clientId, items, networks, now }: { clientId: string
   const [error, setError] = useState<string | null>(null);
   const [sending, startSend] = useTransition();
   const [syncing, startSync] = useTransition();
+  const [ai, setAi] = useState<ReplySuggestion | null>(null);
+  const [thinking, startThinking] = useTransition();
 
   const open = items.filter((i) => !i.reply).length;
   const list = items.filter(
@@ -44,6 +47,19 @@ export function InboxView({ clientId, items, networks, now }: { clientId: string
     setSelected(id);
     setText("");
     setError(null);
+    setAi(null);
+  }
+
+  function suggest() {
+    if (!item) return;
+    const id = item.id;
+    setError(null);
+    startThinking(async () => {
+      const res = await suggestReplyAction(id);
+      if (!res.ok) return setError(res.error);
+      setAi(res.data);
+      setText(res.data.respuesta);
+    });
   }
 
   function send() {
@@ -181,6 +197,38 @@ export function InboxView({ clientId, items, networks, now }: { clientId: string
                         {r}
                       </button>
                     ))}
+                  </div>
+                  <div className="flex flex-col gap-2 rounded-item bg-hairline/60 p-3">
+                    <Button
+                      size="sm"
+                      variant="dark"
+                      className="self-start"
+                      iconLeft={<Sparkles aria-hidden className="size-4" />}
+                      loading={thinking}
+                      disabled={!aiReady}
+                      title={aiReady ? undefined : "Falta la clave de Claude en Vercel (ANTHROPIC_API_KEY)."}
+                      onClick={suggest}
+                    >
+                      {ai ? "Sugerir otra" : "Sugerir con Claude"}
+                    </Button>
+                    {thinking && <p className="text-caption">Claude está leyendo la cuenta y cómo han respondido antes…</p>}
+                    {ai && (
+                      <>
+                        <p className="text-caption">
+                          Tono del mensaje: <strong>{ai.sentimiento}</strong>. Claude escribió la respuesta abajo; edítala antes de enviar.
+                        </p>
+                        {ai.alerta && <p className="rounded-item bg-coral-tint px-3 py-2 text-caption">Ojo: {ai.alerta}</p>}
+                        {ai.alternativa && (
+                          <button
+                            type="button"
+                            onClick={() => setText(text === ai.alternativa ? ai.respuesta : ai.alternativa)}
+                            className="self-start text-caption font-semibold underline underline-offset-2"
+                          >
+                            {text === ai.alternativa ? "Volver a la primera versión" : "Usar la otra versión"}
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                   <Field label="Tu respuesta" error={error ?? undefined}>
                     <Textarea rows={4} value={text} onChange={(e) => setText(e.target.value)} />

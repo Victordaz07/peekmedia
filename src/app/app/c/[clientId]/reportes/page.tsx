@@ -4,14 +4,19 @@ import { Suspense } from "react";
 import { Bars, Heatmap } from "@/components/posts/insights";
 import { PrintReportButton } from "@/components/posts/print-button";
 import { ButtonLink, EmptyState, LoadingState, NetworkDot } from "@/components/ui";
+import { aiReady } from "@/lib/ai/claude";
 import { networks } from "@/lib/design/tokens";
 import { listAudience, listMetrics } from "@/lib/data/insights";
 import { listPosts } from "@/lib/data/posts";
 import { compact, longDate, todayRD } from "@/lib/format";
 import { bestTime, daysAgo, heatmap, platformRows } from "@/lib/social/analytics";
 import { space } from "../space";
+import { ReportSummaryCard } from "./report-summary";
 
 export const metadata: Metadata = { title: "Reportes" };
+
+/** El resumen de Claude puede tardar. */
+export const maxDuration = 120;
 
 export default function ReportesPage({ params, searchParams }: PageProps<"/app/c/[clientId]/reportes">) {
   return (
@@ -50,6 +55,7 @@ async function Reportes({ params, searchParams }: Pick<PageProps<"/app/c/[client
       <div className="flex justify-end" data-noprint>
         <PrintReportButton />
       </div>
+      {s.isTeam && <ReportSummaryCard clientId={s.client.id} ready={aiReady()} />}
 
       <section className="flex flex-col gap-4 rounded-md bg-surface p-6">
         <h2 className="font-display text-h3 font-bold">Resumen por red · últimos 30 días</h2>

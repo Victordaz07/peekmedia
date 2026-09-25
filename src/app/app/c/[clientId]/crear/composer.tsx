@@ -277,6 +277,8 @@ export function Composer({
         <div className={cn(side !== "claude" && "hidden")}>
           <CopilotPanel
             clientId={clientId}
+            postId={post?.id ?? null}
+            feedback={post?.status === "changes" ? post.feedback : null}
             ready={aiReady}
             draft={{ type, caption, firstComment, altText, platforms, scheduledAt: input.scheduledAt, media: media.map((m) => ({ url: m.url, mime: m.mime })) }}
             onApply={applySuggestion}

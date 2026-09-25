@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { LoadingState } from "@/components/ui";
+import { aiReady } from "@/lib/ai/claude";
 import { listInbox } from "@/lib/data/insights";
 import { space } from "../space";
 import { InboxView } from "./inbox-view";
 
 export const metadata: Metadata = { title: "Bandeja" };
+
+/** Las respuestas sugeridas por Claude pueden tardar. */
+export const maxDuration = 120;
 
 export default function BandejaPage({ params, searchParams }: PageProps<"/app/c/[clientId]/bandeja">) {
   return (
@@ -20,5 +24,5 @@ async function Bandeja({ params, searchParams }: Pick<PageProps<"/app/c/[clientI
   const s = await space(params, searchParams);
   if (!s.isTeam) redirect(`${s.base}${s.q}`);
   const items = await listInbox(s.client.id);
-  return <InboxView clientId={s.client.id} items={items} networks={s.client.platforms} now={new Date().getTime()} />;
+  return <InboxView clientId={s.client.id} items={items} networks={s.client.platforms} now={new Date().getTime()} aiReady={aiReady()} />;
 }

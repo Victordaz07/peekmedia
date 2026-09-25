@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoadingState } from "@/components/ui";
+import { aiReady } from "@/lib/ai/claude";
 import { requireTeam } from "@/lib/auth";
 import { listLeads } from "@/lib/data/leads";
 import { LeadsBoard } from "./leads-board";
 
 export const metadata: Metadata = { title: "Prospectos" };
+
+/** La respuesta sugerida por Claude puede tardar. */
+export const maxDuration = 120;
 
 export default function ProspectosPage() {
   return (
@@ -26,5 +30,5 @@ export default function ProspectosPage() {
 async function Leads() {
   await requireTeam();
   const leads = await listLeads();
-  return <LeadsBoard initial={leads} />;
+  return <LeadsBoard initial={leads} aiReady={aiReady()} />;
 }
