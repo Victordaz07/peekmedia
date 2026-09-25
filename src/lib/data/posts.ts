@@ -2,6 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import type { Network } from "@/lib/design/tokens";
 import { isLocalMode } from "@/lib/env";
+import { contentKey } from "@/lib/social/approval";
 import type { Approval, Post, PostInput, PostMetrics, PostStatus, PostTarget, TargetStatus } from "@/lib/social/schema";
 import { createAdminClient, createSessionClient } from "@/lib/supabase/server";
 import { localTable } from "./local-store";
@@ -156,10 +157,8 @@ export async function createPost(clientId: string, input: PostInput, status: Pos
 export async function updatePost(id: string, input: PostInput, status: PostStatus): Promise<Post> {
   const current = await getPost(id);
   if (!current) throw new Error("Esa publicación no existe.");
-  const content = (p: Pick<Post, "type" | "caption" | "firstComment" | "altText" | "media" | "platforms">) =>
-    JSON.stringify([p.type, p.caption, p.firstComment, p.altText, p.media.map((m) => m.id), [...p.platforms].sort()]);
   // Si el cliente ya vio esta pieza y cambia el contenido, es una versión nueva.
-  const bump = ["pending", "changes", "approved", "scheduled"].includes(current.status) && content(current) !== content(input);
+  const bump = ["pending", "changes", "approved", "scheduled"].includes(current.status) && contentKey(current) !== contentKey(input);
   const version = current.version + (bump ? 1 : 0);
   const keep = current.targets.filter((t) => input.platforms.includes(t.platform));
   const targets = input.platforms.map((p) => {
@@ -194,6 +193,48 @@ export async function updatePost(id: string, input: PostInput, status: PostStatu
     if (tErr) fail("No se pudieron guardar los destinos", tErr);
   }
   return (await getPost(id))!;
+}
+
+/** Una reserva vieja (la ejecución se cayó a mitad) se puede tomar de nuevo después de este tiempo. */
+const PUBLISH_LOCK_MS = 15 * 60_000;
+
+/**
+ * Reserva la pieza para publicarla. Solo una ejecución a la vez la gana (cron, "Publicar ahora" o "Reintentar"),
+ * con un update condicional en la base de datos. Devuelve false si otra ya la tiene.
+ */
+export async function claimForPublish(id: string): Promise<boolean> {
+  const now = new Date();
+  const stale = new Date(now.getTime() - PUBLISH_LOCK_MS).toISOString();
+  if (isLocalMode()) {
+    const post = (await postsT.find((p) => p.id === id)) as (Post & { publishingAt?: string | null }) | undefined;
+    if (!post || !["scheduled", "failed"].includes(post.status) || (post.publishingAt && post.publishingAt > stale)) return false;
+    await postsT.update(id, { publishingAt: now.toISOString() } as Partial<Post>);
+    return true;
+  }
+  const { data, error } = await createAdminClient()
+    .from("posts")
+    .update({ publishing_at: now.toISOString() })
+    .eq("id", id)
+    .in("status", ["scheduled", "failed"])
+    .or(`publishing_at.is.null,publishing_at.lt.${stale}`)
+    .select("id");
+  if (error) {
+    // Sin la migración de la reserva todavía aplicada: se publica como antes en vez de no publicar.
+    if (/publishing_at/.test(error.message)) {
+      console.error("[claimForPublish] falta la columna publishing_at; aplica la migración 20260929000000", error.message);
+      return true;
+    }
+    fail("No se pudo reservar la publicación", error);
+  }
+  return (data ?? []).length > 0;
+}
+
+export async function releasePublish(id: string) {
+  if (isLocalMode()) {
+    await postsT.update(id, { publishingAt: null } as Partial<Post>);
+    return;
+  }
+  await createAdminClient().from("posts").update({ publishing_at: null }).eq("id", id);
 }
 
 export async function setPostStatus(id: string, status: PostStatus, { admin = false } = {}) {

@@ -8,6 +8,7 @@ import { createUploadTicket, type UploadTicket } from "@/lib/data/media";
 import * as posts from "@/lib/data/posts";
 import { notifyApprovalRequested, notifyReviewed } from "@/lib/notify";
 import { publishPost } from "@/lib/social/engine";
+import { approvalBlocker } from "@/lib/social/approval";
 import { postInputSchema, type PostStatus } from "@/lib/social/schema";
 import { validatePost, type Intent } from "@/lib/social/validate";
 
@@ -39,6 +40,9 @@ export async function savePostAction(clientId: string, postId: string | null, in
     const current = await posts.getPost(postId);
     if (!current || current.clientId !== clientId) return { ok: false, error: "Esa publicación no existe." };
     if (current.status === "published") return { ok: false, error: "Ya se publicó: no se puede editar. Duplícala para hacer otra." };
+    // Lo que el cliente no aprobó no se programa ni se publica.
+    const blocker = approvalBlocker({ intent, post: current, next: data, approvals: await posts.listApprovals(postId) });
+    if (blocker) return { ok: false, error: blocker };
     post = await posts.updatePost(postId, data, statusFor[intent]);
   } else {
     post = await posts.createPost(clientId, data, statusFor[intent], user);

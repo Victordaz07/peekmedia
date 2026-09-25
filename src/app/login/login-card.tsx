@@ -114,7 +114,7 @@ function LoginForm({
         error={state.error}
       >
         {client ? (
-          <Input name="secret" autoComplete="one-time-code" autoCapitalize="characters" spellCheck={false} placeholder="XXXX-XXXX" required defaultValue={fill?.code} className="font-mono tracking-[0.12em] uppercase" />
+          <Input name="secret" autoComplete="one-time-code" autoCapitalize="characters" spellCheck={false} placeholder="XXXX-XXXX-XXXX" required defaultValue={fill?.code} className="font-mono tracking-[0.12em] uppercase" />
         ) : (
           <Input name="secret" type="password" autoComplete="current-password" required minLength={6} defaultValue={localTeam?.password} />
         )}

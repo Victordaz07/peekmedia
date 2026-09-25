@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -5,7 +6,7 @@ import { LoadingState } from "@/components/ui";
 import { isClientAdmin, requireClientAccess } from "@/lib/auth";
 import { getAgency } from "@/lib/contracts/agency";
 import { contractPlans, DEFAULT_PLAN_ID } from "@/lib/contracts/catalog";
-import { contractSections, paymentSchedule, type ContractSection } from "@/lib/contracts/document";
+import { canonicalDocument, contractSections, paymentSchedule, type ContractSection } from "@/lib/contracts/document";
 import { defaultTerms, termsOf } from "@/lib/contracts/terms";
 import { getClient } from "@/lib/data/clients";
 import { getSiteContent } from "@/lib/data/content";
@@ -57,12 +58,15 @@ async function Plan({ params, searchParams }: Pick<PageProps<"/app/c/[clientId]/
       : contractSections(current, client, agency)
     : [];
   const signed = versions.find((c) => c.status === "signed");
+  // Huella del documento en pantalla: la firma solo se acepta si coincide con la del servidor al firmar.
+  const docSha256 = current?.status === "sent" ? createHash("sha256").update(canonicalDocument(current, client, agency), "utf8").digest("hex") : null;
   const fallbackPlan = catalog.find((p) => p.id === DEFAULT_PLAN_ID) ?? catalog[0];
 
   return (
     <PlanView
       mode={mode}
       canSign={isClientAdmin(viewer) && current?.status === "sent"}
+      docSha256={docSha256}
       isClientAdmin={isClientAdmin(viewer)}
       isOwner={viewer.kind === "team" && viewer.role === "owner"}
       client={{ id: client.id, name: client.name, contactName: client.contactName }}

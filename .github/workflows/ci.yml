@@ -1,0 +1,53 @@
+name: CI
+
+# Lo mismo que se corre a mano antes de publicar, en cada pull request y en cada push a la rama principal.
+on:
+  pull_request:
+  push:
+    branches: [claude/affectionate-cerf-o69xv9]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: Lint, pruebas y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      # Sin variables de Supabase: compila en modo local, igual que en desarrollo.
+      - run: npm run build
+
+  database:
+    name: Seguridad de la base de datos (RLS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: pg
+          POSTGRES_DB: peek_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/test-db.sh
+        env:
+          DATABASE_URL: postgres://postgres:pg@localhost:5432/peek_test

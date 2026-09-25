@@ -82,6 +82,8 @@ export const signSchema = z.object({
     .regex(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/, "Firma no válida")
     .nullable(),
   accept: z.literal(true, "Marca la casilla para aceptar el contrato"),
+  /** SHA-256 del documento que la persona tenía en pantalla: si cambió, no se firma. */
+  docSha256: z.string().regex(/^[0-9a-f]{64}$/, "Recarga la página para ver la versión actual del contrato."),
 });
 
 export type PlanRequest = {

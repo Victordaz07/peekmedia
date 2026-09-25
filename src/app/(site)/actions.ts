@@ -6,7 +6,7 @@ import { quoteTotals } from "@/lib/content/helpers";
 import { hashVisitor } from "@/lib/crypto";
 import { getSiteContent } from "@/lib/data/content";
 import { createLead } from "@/lib/data/leads";
-import { takeQuoteAttempt } from "@/lib/data/quote-attempts";
+import { LEAD_EMAILS_PER_HOUR, leadsInLastHour, takeQuoteAttempt } from "@/lib/data/quote-attempts";
 import { quoteSubmissionSchema } from "@/lib/leads/schema";
 import { notifyNewLead } from "@/lib/notify";
 
@@ -37,7 +37,12 @@ export async function submitQuote(input: unknown): Promise<QuoteResult> {
   try {
     const lead = { name, business, notes, services, totalMonthly: totals.monthly, totalOnce: totals.once, source: "cotizador" };
     await createLead(lead);
-    after(() => notifyNewLead(lead).catch((e) => console.error("[notifyNewLead]", e)));
+    after(async () => {
+      // Tope de correos por hora: el prospecto se guarda igual y se ve en el panel.
+      const recent = await leadsInLastHour().catch(() => 0);
+      if (recent > LEAD_EMAILS_PER_HOUR) return console.warn("[notifyNewLead] tope de correos por hora alcanzado");
+      await notifyNewLead(lead).catch((e) => console.error("[notifyNewLead]", e));
+    });
     return { ok: true };
   } catch (e) {
     console.error("[submitQuote]", e);

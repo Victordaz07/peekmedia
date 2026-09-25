@@ -12,7 +12,7 @@ function key(): Buffer {
     if (buf.length !== 32) throw new Error("TOKEN_ENCRYPTION_KEY debe ser de 32 bytes en base64 (openssl rand -base64 32).");
     return buf;
   }
-  if (process.env.NODE_ENV === "production" && process.env.PEEK_ALLOW_LOCAL_MODE !== "1") {
+  if (process.env.VERCEL_ENV === "production" || (process.env.NODE_ENV === "production" && process.env.PEEK_ALLOW_LOCAL_MODE !== "1")) {
     throw new Error("Falta TOKEN_ENCRYPTION_KEY para guardar tokens de redes.");
   }
   return createHash("sha256").update("peek-media-dev-only-key").digest();

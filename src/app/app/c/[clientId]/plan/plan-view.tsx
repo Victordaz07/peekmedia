@@ -22,6 +22,8 @@ export type HistoryItem = Pick<Contract, "id" | "version" | "planName" | "status
 export function PlanView(props: {
   mode: PlanMode;
   canSign: boolean;
+  /** SHA-256 del contrato pendiente de firma, tal como se muestra. */
+  docSha256: string | null;
   isClientAdmin: boolean;
   /** Dueño de la agencia: el único que puede anular o finalizar. */
   isOwner: boolean;
@@ -103,7 +105,7 @@ export function PlanView(props: {
           <ContractPaper contract={current} sections={props.sections} agency={props.agency} client={client} showDraftNotice={isTeam} />
           <div className="flex min-w-0 flex-[2_1_320px] flex-col gap-5" data-noprint>
             {current.status === "sent" && (props.canSign || mode === "preview") && (
-              <SignPanel contractId={current.id} preview={mode === "preview"} defaultName={client.contactName} />
+              <SignPanel contractId={current.id} docSha256={props.docSha256 ?? ""} preview={mode === "preview"} defaultName={client.contactName} />
             )}
             <WaitingNote mode={mode} status={current.status} isClientAdmin={props.isClientAdmin} />
             <EndedNote contract={current} showReason={isTeam} />

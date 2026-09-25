@@ -87,7 +87,7 @@ export async function signContractAction(input: unknown): Promise<Result<{ code:
 
   const parsed = signSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
-  const { contractId, name, method, image } = parsed.data;
+  const { contractId, name, method, image, docSha256: seen } = parsed.data;
   if (method === "drawn" && !image) return { ok: false, error: "Dibuja tu firma en el recuadro." };
 
   const contract = await contracts.getContract(contractId);
@@ -96,6 +96,10 @@ export async function signContractAction(input: unknown): Promise<Result<{ code:
   const client = (await getClient(contract.clientId))!;
 
   const document = canonicalDocument(contract, client, await getAgency());
+  const docSha256 = createHash("sha256").update(document, "utf8").digest("hex");
+  // Lo que se firma tiene que ser exactamente lo que la persona leyó (si el equipo lo editó o cambió
+  // un dato del cliente o de la agencia mientras tanto, se le pide recargar).
+  if (docSha256 !== seen) return { ok: false, error: "El contrato cambió mientras lo leías. Recarga la página, revísalo y firma de nuevo." };
   const h = await headers();
   const code = `SIG-${randomBytes(4).toString("hex").toUpperCase()}`;
   try {
@@ -109,7 +113,7 @@ export async function signContractAction(input: unknown): Promise<Result<{ code:
       signedAt: new Date().toISOString(),
       ip: (h.get("x-forwarded-for")?.split(",")[0] ?? h.get("x-real-ip") ?? "").trim().slice(0, 64),
       userAgent: (h.get("user-agent") ?? "").slice(0, 400),
-      docSha256: createHash("sha256").update(document, "utf8").digest("hex"),
+      docSha256,
       document,
       verificationCode: code,
     });
