@@ -84,6 +84,7 @@ export async function ask<S extends z.ZodType>(opts: {
       if (e instanceof Anthropic.BadRequestError) {
         console.error("claude 400", e.message);
         const text = e.message.toLowerCase();
+        if (/credit balance|billing/.test(text)) throw new AIError("Tu cuenta de Claude no tiene saldo. Cárgale crédito en console.anthropic.com → Billing.");
         // Primero lo que el mensaje de error nombra; si no nombra nada, se apaga lo más probable.
         const culprit =
           (on.fallback && /fallback|beta/.test(text) && "fallback") ||
